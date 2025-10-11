@@ -54,12 +54,62 @@ qjournal/
 │   ├── server.js
 │   ├── Dockerfile
 │   └── package.json
+├── k8s/                # Kubernetes manifests
+│   ├── namespace.yaml
+│   ├── backend-deployment.yaml
+│   ├── frontend-deployment.yaml
+│   ├── ingress.yaml
+│   └── README.md
 ├── .github/
 │   └── workflows/      # GitHub Actions
-└── docker-compose.yml
+├── docker-compose.yml
+└── deploy.sh           # K8s deployment script
 ```
 
 ## Deployment
+
+### Docker Compose (Local Development)
+
+```bash
+docker-compose up --build
+```
+
+### Kubernetes
+
+#### Quick Deploy
+
+Use the deployment script:
+
+```bash
+./deploy.sh
+```
+
+#### Manual Deploy
+
+1. Create namespace and secret:
+   ```bash
+   kubectl create namespace qjournal
+   kubectl create secret generic qjournal-secrets \
+     --from-env-file=.env \
+     --namespace=qjournal
+   ```
+
+2. Deploy all resources:
+   ```bash
+   kubectl apply -f k8s/
+   ```
+
+3. Check status:
+   ```bash
+   kubectl get pods -n qjournal
+   ```
+
+4. Port forward to test:
+   ```bash
+   kubectl port-forward svc/qjournal-frontend 8080:80 -n qjournal
+   ```
+
+See `k8s/README.md` for detailed deployment instructions.
 
 The app automatically builds and pushes Docker images to GitHub Container Registry on every commit to main/master branch.
 
