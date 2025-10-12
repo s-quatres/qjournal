@@ -75,6 +75,8 @@ const JournalApp = () => {
     setError(null);
 
     try {
+      console.log("Submitting journal answers:", answers);
+
       const response = await fetch("/api/journal/analyze", {
         method: "POST",
         headers: {
@@ -83,19 +85,23 @@ const JournalApp = () => {
         body: JSON.stringify({ answers }),
       });
 
+      console.log("Response status:", response.status);
+      console.log("Response headers:", response.headers);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Response error text:", errorText);
         throw new Error(
-          "Failed to generate summary: " +
-            response +
-            " Text:" +
-            (await response.text())
+          `Failed to generate summary (Status: ${response.status}). Response: ${errorText}`
         );
       }
 
       const data = await response.json();
+      console.log("Received summary data:", data);
       setSummary(data.summary);
       setCurrentStep(questions.length);
     } catch (err) {
+      console.error("Error in handleSubmit:", err);
       setError(err.message);
     } finally {
       setLoading(false);
