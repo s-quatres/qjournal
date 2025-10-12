@@ -95,7 +95,7 @@ app.all("/", (req, res) => {
   res.status(404).json({
     error: "Route not found",
     message:
-      "Use /api/journal/analyze for journal analysis (will be proxied to /journal/analyze)",
+      "Use /api/journal/analyze for journal analysis (ingress strips /api prefix)",
     availableRoutes: ["/journal/analyze", "/health"],
   });
 });
