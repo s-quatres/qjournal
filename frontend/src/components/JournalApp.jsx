@@ -1,35 +1,61 @@
-import React, { useState } from 'react';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Alert, AlertDescription } from './ui/alert';
-import { Loader2, BookOpen, Sparkles } from 'lucide-react';
+import React, { useState } from "react";
+import { Button } from "./ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Label } from "./ui/label";
+import { Textarea } from "./ui/textarea";
+import { Alert, AlertDescription } from "./ui/alert";
+import { Loader2, BookOpen, Sparkles } from "lucide-react";
 
 const JournalApp = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState(null);
-  
+
   const [answers, setAnswers] = useState({
-    mood: '',
-    gratitude: '',
-    challenges: '',
-    achievements: '',
-    tomorrow: ''
+    mood: "",
+    gratitude: "",
+    challenges: "",
+    achievements: "",
+    tomorrow: "",
   });
 
   const questions = [
-    { id: 'mood', label: 'How are you feeling today?', placeholder: 'Describe your mood and emotions...' },
-    { id: 'gratitude', label: 'What are you grateful for today?', placeholder: 'List things you appreciate...' },
-    { id: 'challenges', label: 'What challenges did you face?', placeholder: 'Describe any difficulties...' },
-    { id: 'achievements', label: 'What did you accomplish today?', placeholder: 'Share your wins, big or small...' },
-    { id: 'tomorrow', label: 'What are you looking forward to tomorrow?', placeholder: 'Set your intentions...' }
+    {
+      id: "mood",
+      label: "How are you feeling today?",
+      placeholder: "Describe your mood and emotions...",
+    },
+    {
+      id: "gratitude",
+      label: "What are you grateful for today?",
+      placeholder: "List things you appreciate...",
+    },
+    {
+      id: "challenges",
+      label: "What challenges did you face?",
+      placeholder: "Describe any difficulties...",
+    },
+    {
+      id: "achievements",
+      label: "What did you accomplish today?",
+      placeholder: "Share your wins, big or small...",
+    },
+    {
+      id: "tomorrow",
+      label: "What are you looking forward to tomorrow?",
+      placeholder: "Set your intentions...",
+    },
   ];
 
   const handleInputChange = (field, value) => {
-    setAnswers(prev => ({ ...prev, [field]: value }));
+    setAnswers((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleNext = () => {
@@ -47,18 +73,18 @@ const JournalApp = () => {
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const response = await fetch('/api/journal/analyze', {
-        method: 'POST',
+      const response = await fetch("/api/journal/analyze", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ answers })
+        body: JSON.stringify({ answers }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate summary');
+        throw new Error("Failed to generate summary: " + response.statusText);
       }
 
       const data = await response.json();
@@ -74,11 +100,11 @@ const JournalApp = () => {
   const handleReset = () => {
     setCurrentStep(0);
     setAnswers({
-      mood: '',
-      gratitude: '',
-      challenges: '',
-      achievements: '',
-      tomorrow: ''
+      mood: "",
+      gratitude: "",
+      challenges: "",
+      achievements: "",
+      tomorrow: "",
     });
     setSummary(null);
     setError(null);
@@ -97,7 +123,9 @@ const JournalApp = () => {
               <Sparkles className="w-12 h-12 text-purple-600" />
             </div>
             <CardTitle className="text-3xl">Your Journal Summary</CardTitle>
-            <CardDescription>AI-generated insights and feedback</CardDescription>
+            <CardDescription>
+              AI-generated insights and feedback
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-6 rounded-lg">
@@ -125,7 +153,9 @@ const JournalApp = () => {
             </span>
           </div>
           <CardTitle className="text-2xl">{currentQuestion.label}</CardTitle>
-          <CardDescription>Take your time and reflect on your day</CardDescription>
+          <CardDescription>
+            Take your time and reflect on your day
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
@@ -139,7 +169,9 @@ const JournalApp = () => {
             <Textarea
               id={currentQuestion.id}
               value={answers[currentQuestion.id]}
-              onChange={(e) => handleInputChange(currentQuestion.id, e.target.value)}
+              onChange={(e) =>
+                handleInputChange(currentQuestion.id, e.target.value)
+              }
               placeholder={currentQuestion.placeholder}
               rows={6}
               className="resize-none"
@@ -148,11 +180,7 @@ const JournalApp = () => {
 
           <div className="flex gap-3">
             {currentStep > 0 && (
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                className="flex-1"
-              >
+              <Button variant="outline" onClick={handleBack} className="flex-1">
                 Back
               </Button>
             )}
@@ -176,7 +204,7 @@ const JournalApp = () => {
                     Analyzing...
                   </>
                 ) : (
-                  'Get Summary & Feedback'
+                  "Get Summary & Feedback"
                 )}
               </Button>
             )}
@@ -188,10 +216,10 @@ const JournalApp = () => {
                 key={idx}
                 className={`h-2 w-2 rounded-full transition-all ${
                   idx === currentStep
-                    ? 'bg-purple-600 w-8'
+                    ? "bg-purple-600 w-8"
                     : idx < currentStep
-                    ? 'bg-purple-400'
-                    : 'bg-gray-300'
+                    ? "bg-purple-400"
+                    : "bg-gray-300"
                 }`}
               />
             ))}
