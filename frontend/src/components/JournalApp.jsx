@@ -84,7 +84,12 @@ const JournalApp = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate summary: " + response.statusText);
+        throw new Error(
+          "Failed to generate summary: " +
+            response +
+            " Text:" +
+            (await response.text())
+        );
       }
 
       const data = await response.json();

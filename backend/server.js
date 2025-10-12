@@ -16,6 +16,7 @@ const openai = new OpenAI({
 });
 
 app.post("/api/journal/analyze", async (req, res) => {
+  console.log("Received request body:", req.body);
   try {
     const { answers } = req.body;
 
