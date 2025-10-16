@@ -13,7 +13,11 @@ app.use(express.json());
 
 // Add logging middleware to see all incoming requests
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Headers: ${JSON.stringify(req.headers.accept)}`);
+  console.log(
+    `${new Date().toISOString()} - ${req.method} ${
+      req.path
+    } - Headers: ${JSON.stringify(req.headers.accept)}`
+  );
   next();
 });
 
@@ -108,19 +112,25 @@ app.all("/", (req, res) => {
 // Catch-all route for undefined routes
 app.all("*", (req, res) => {
   console.log(`Received ${req.method} request to undefined route: ${req.path}`);
-  
+
   // If this is a request for static assets, return 404 with proper headers
-  if (req.path.startsWith('/assets/') || 
-      req.path.endsWith('.js') || 
-      req.path.endsWith('.css') || 
-      req.path.endsWith('.map') ||
-      req.path.endsWith('.ico') ||
-      req.path.endsWith('.png') ||
-      req.path.endsWith('.svg')) {
-    console.log(`WARNING: Static asset ${req.path} was routed to backend - this indicates ingress misconfiguration`);
-    return res.status(404).send('Static asset not found - check ingress configuration');
+  if (
+    req.path.startsWith("/assets/") ||
+    req.path.endsWith(".js") ||
+    req.path.endsWith(".css") ||
+    req.path.endsWith(".map") ||
+    req.path.endsWith(".ico") ||
+    req.path.endsWith(".png") ||
+    req.path.endsWith(".svg")
+  ) {
+    console.log(
+      `WARNING: Static asset ${req.path} was routed to backend - this indicates ingress misconfiguration`
+    );
+    return res
+      .status(404)
+      .send("Static asset not found - check ingress configuration");
   }
-  
+
   res.status(404).json({
     error: "Route not found",
     requestedPath: req.path,
