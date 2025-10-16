@@ -15,7 +15,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.post("/journal/analyze", async (req, res) => {
+app.post("/api/journal/analyze", async (req, res) => {
   console.log("=== Journal Analysis Request ===");
   console.log("Request URL:", req.url);
   console.log("Request method:", req.method);
@@ -94,9 +94,8 @@ app.all("/", (req, res) => {
   );
   res.status(404).json({
     error: "Route not found",
-    message:
-      "Use /api/journal/analyze for journal analysis (ingress strips /api prefix)",
-    availableRoutes: ["/journal/analyze", "/health"],
+    message: "Use /api/journal/analyze for journal analysis",
+    availableRoutes: ["/api/journal/analyze", "/health"],
   });
 });
 
@@ -106,7 +105,7 @@ app.all("*", (req, res) => {
   res.status(404).json({
     error: "Route not found",
     requestedPath: req.path,
-    availableRoutes: ["/journal/analyze", "/health"],
+    availableRoutes: ["/api/journal/analyze", "/health"],
   });
 });
 
