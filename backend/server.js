@@ -57,7 +57,7 @@ Please provide:
 4. A positive note to end on
 5. Steps for tomorrow based on the entries
 
-Keep your response personal, supportive, and concise (200-300 words).`;
+Keep your response personal, supportive, and concise (200-300 words). If any entry does not make sense, say so, and do not provide any feedback on that entry.`;
 
     console.log("Making OpenAI API call...");
     const completion = await openai.chat.completions.create({
