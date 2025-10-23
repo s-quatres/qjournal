@@ -44,13 +44,15 @@ app.post("/api/journal/analyze", async (req, res) => {
 
     const prompt = `You are a compassionate journaling assistant. A user has completed their daily journal with the following entries:
 
+Sleep: ${answers.sleep}
+Dancing: ${answers.dancing}
 Mood: ${answers.mood}
 Gratitude: ${answers.gratitude}
 Challenges: ${answers.challenges}
-Achievements: ${answers.achievements}
 Tomorrow's Focus: ${answers.tomorrow}
 
 Please provide:
+1  A one line description of the day.
 1. A brief, warm summary of their entries (2-3 sentences)
 2. Thoughtful insights about patterns or themes you notice
 3. Encouraging feedback and suggestions for growth

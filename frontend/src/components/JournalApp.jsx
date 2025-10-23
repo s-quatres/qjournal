@@ -28,6 +28,17 @@ const JournalApp = () => {
 
   const questions = [
     {
+      id: "sleep",
+      label: "Sleep",
+      placeholder: "How did you sleep last night?",
+    },
+    {
+      id: "dancing",
+      label: "Dancing",
+      placeholder:
+        "What dancing did you do today, and if so who did you most enjoy dancing with, and did you learn anything?",
+    },
+    {
       id: "mood",
       label: "How are you feeling today?",
       placeholder: "Describe your mood and emotions...",
@@ -35,17 +46,12 @@ const JournalApp = () => {
     {
       id: "gratitude",
       label: "What are you grateful for today?",
-      placeholder: "List things you appreciate...",
+      placeholder: "List 3 things or moments that you appreciated...",
     },
     {
       id: "challenges",
       label: "What challenges did you face?",
       placeholder: "Describe any difficulties...",
-    },
-    {
-      id: "achievements",
-      label: "What did you accomplish today?",
-      placeholder: "Share your wins, big or small...",
     },
     {
       id: "tomorrow",
