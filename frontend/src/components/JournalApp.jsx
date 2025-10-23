@@ -119,6 +119,8 @@ const JournalApp = () => {
   const handleReset = () => {
     setCurrentStep(0);
     setAnswers({
+      sleep: "",
+      dancing: "",
       mood: "",
       gratitude: "",
       challenges: "",
