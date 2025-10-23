@@ -19,6 +19,8 @@ const JournalApp = () => {
   const [error, setError] = useState(null);
 
   const [answers, setAnswers] = useState({
+    sleep: "",
+    dancing: "",
     mood: "",
     gratitude: "",
     challenges: "",
