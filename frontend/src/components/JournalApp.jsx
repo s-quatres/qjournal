@@ -13,21 +13,7 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { Loader2, BookOpen, Sparkles } from "lucide-react";
 
 const JournalApp = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [summary, setSummary] = useState(null);
-  const [error, setError] = useState(null);
-
-  const [answers, setAnswers] = useState({
-    sleep: "",
-    dancing: "",
-    mood: "",
-    gratitude: "",
-    challenges: "",
-    achievements: "",
-    tomorrow: "",
-  });
-
+  // Define all questions in one place - add/remove/edit questions here
   const questions = [
     {
       id: "sleep",
@@ -61,6 +47,20 @@ const JournalApp = () => {
       placeholder: "Set your intentions...",
     },
   ];
+
+  // Initialize answers state dynamically from questions
+  const initializeAnswers = () => {
+    return questions.reduce((acc, question) => {
+      acc[question.id] = "";
+      return acc;
+    }, {});
+  };
+
+  const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [summary, setSummary] = useState(null);
+  const [error, setError] = useState(null);
+  const [answers, setAnswers] = useState(initializeAnswers());
 
   const handleInputChange = (field, value) => {
     setAnswers((prev) => ({ ...prev, [field]: value }));
@@ -118,15 +118,7 @@ const JournalApp = () => {
 
   const handleReset = () => {
     setCurrentStep(0);
-    setAnswers({
-      sleep: "",
-      dancing: "",
-      mood: "",
-      gratitude: "",
-      challenges: "",
-      achievements: "",
-      tomorrow: "",
-    });
+    setAnswers(initializeAnswers());
     setSummary(null);
     setError(null);
   };

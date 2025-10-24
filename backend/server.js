@@ -42,22 +42,32 @@ app.post("/api/journal/analyze", async (req, res) => {
 
     console.log("Processing answers:", Object.keys(answers));
 
+    // Dynamically build the entries section from whatever fields are present
+    const entriesText = Object.entries(answers)
+      .filter(([_, value]) => value && value.trim().length > 0)
+      .map(([key, value]) => {
+        // Convert camelCase to Title Case (e.g., "mood" -> "Mood", "tomorrowsFocus" -> "Tomorrows Focus")
+        const label =
+          key.charAt(0).toUpperCase() +
+          key
+            .slice(1)
+            .replace(/([A-Z])/g, " $1")
+            .trim();
+        return `${label}: ${value}`;
+      })
+      .join("\n");
+
     const prompt = `You are a compassionate journaling assistant. A user has completed their daily journal with the following entries:
 
-Sleep: ${answers.sleep}
-Dancing: ${answers.dancing}
-Mood: ${answers.mood}
-Gratitude: ${answers.gratitude}
-Challenges: ${answers.challenges}
-Tomorrow's Focus: ${answers.tomorrow}
+${entriesText}
 
 Please provide:
-1  A one line description of the day.
-1. A brief, warm summary of their entries (2-3 sentences)
-2. Thoughtful insights about patterns or themes you notice
-3. Encouraging feedback and suggestions for growth
-4. A positive note to end on
-5. Steps for tomorrow based on the entries
+1. A one line description of the day.
+2. A brief, warm summary of their entries (2-3 sentences)
+3. Thoughtful insights about patterns or themes you notice
+4. Encouraging feedback and suggestions for growth
+5. A positive note to end on
+6. Steps for tomorrow based on the entries
 
 Keep your response personal, supportive, and concise (200-300 words). If any entry does not make sense, say so, and do not provide any feedback on that entry.`;
 
