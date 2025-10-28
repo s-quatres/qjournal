@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qjournal-backend
+  namespace: qjournal
+  labels:
+    app: qjournal-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qjournal-backend
+  template:
+    metadata:
+      labels:
+        app: qjournal-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/s-quatres/qjournal-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3001
+              name: http
+          env:
+            - name: PORT
+              value: "3001"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: qjournal-secrets
+                  key: OPENAI_API_KEY
+            - name: KEYCLOAK_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KEYCLOAK_URL
+            - name: KEYCLOAK_REALM
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KEYCLOAK_REALM
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qjournal-backend
+  namespace: qjournal
+  labels:
+    app: qjournal-backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3001
+      targetPort: 3001
+      protocol: TCP
+      name: http
+  selector:
+    app: qjournal-backend

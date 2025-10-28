@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-config
+  namespace: qjournal
+data:
+  KEYCLOAK_URL: "https://keycloak.quatres.net"
+  KEYCLOAK_REALM: "qjournal"
+  KEYCLOAK_CLIENT_ID: "qjournal-app"

@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qjournal-ingress
+  namespace: qjournal
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: qjournal.quatres.net
+      http:
+        paths:
+          # All traffic goes to frontend (frontend nginx handles API proxying)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qjournal-frontend
+                port:
+                  number: 80

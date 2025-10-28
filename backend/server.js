@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const OpenAI = require("openai");
+const { authenticateToken } = require("./middleware/auth");
 
 dotenv.config();
 
@@ -25,11 +26,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.post("/api/journal/analyze", async (req, res) => {
+app.post("/api/journal/analyze", authenticateToken, async (req, res) => {
   console.log("=== Journal Analysis Request ===");
   console.log("Request URL:", req.url);
   console.log("Request method:", req.method);
-  console.log("Request headers:", req.headers);
+  console.log("Authenticated user:", req.user.email, req.user.firstName);
   console.log("Received request body:", req.body);
 
   try {
@@ -64,7 +65,6 @@ ${entriesText}
 Please provide:
 1. A one line description of the day.
 2. A brief, warm summary of their entries (2-3 sentences)
-3. Thoughtful insights about patterns or themes you notice
 4. Encouraging feedback and suggestions for growth
 5. A positive note to end on
 6. Steps for tomorrow based on the entries
@@ -78,7 +78,7 @@ Keep your response personal, supportive, and concise (200-300 words). If any ent
         {
           role: "system",
           content:
-            "You are a supportive and insightful journaling assistant who helps people reflect on their day with empathy and wisdom.",
+            "You are a supportive and insightful journaling assistant who helps people reflect on their day with empathy and wisdom. Don't be too positive or generic; tailor your responses to the user's actual entries.",
         },
         {
           role: "user",

@@ -10,9 +10,12 @@ import {
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Alert, AlertDescription } from "./ui/alert";
-import { Loader2, BookOpen, Sparkles } from "lucide-react";
+import { Loader2, BookOpen, Sparkles, LogOut } from "lucide-react";
+import { useAuth } from "../AuthContext";
 
 const JournalApp = () => {
+  const { user, logout, getToken, loading: authLoading } = useAuth();
+
   // Define all questions in one place - add/remove/edit questions here
   const questions = [
     {
@@ -85,10 +88,12 @@ const JournalApp = () => {
     try {
       console.log("Submitting journal answers:", answers);
 
+      const token = getToken();
       const response = await fetch("/api/journal/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ answers }),
       });
@@ -127,9 +132,37 @@ const JournalApp = () => {
   const isLastQuestion = currentStep === questions.length - 1;
   const canProceed = answers[currentQuestion?.id]?.trim().length > 0;
 
+  // Loading state while auth is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+      </div>
+    );
+  }
+
+  // User header component
+  const UserHeader = () => (
+    <div className="absolute top-4 right-4 flex items-center gap-4">
+      <span className="text-sm text-gray-700">
+        Hello, <span className="font-semibold">{user?.firstName}</span>
+      </span>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={logout}
+        className="flex items-center gap-2"
+      >
+        <LogOut className="w-4 h-4" />
+        Logout
+      </Button>
+    </div>
+  );
+
   if (currentStep === questions.length && summary) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4 flex items-center justify-center relative">
+        <UserHeader />
         <Card className="w-full max-w-2xl shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
@@ -156,7 +189,8 @@ const JournalApp = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4 flex items-center justify-center relative">
+      <UserHeader />
       <Card className="w-full max-w-2xl shadow-xl">
         <CardHeader>
           <div className="flex items-center justify-between mb-2">
