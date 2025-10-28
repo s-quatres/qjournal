@@ -11,7 +11,7 @@ const keycloakConfig = {
   realm:
     runtimeConfig.KEYCLOAK_REALM ||
     import.meta.env.VITE_KEYCLOAK_REALM ||
-    "qjournal",
+    "master",
   clientId:
     runtimeConfig.KEYCLOAK_CLIENT_ID ||
     import.meta.env.VITE_KEYCLOAK_CLIENT_ID ||
