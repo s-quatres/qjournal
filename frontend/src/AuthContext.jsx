@@ -42,14 +42,21 @@ export const AuthProvider = ({ children }) => {
         }
 
         setIsAuthenticated(authenticated);
-        console.log("Loading user profile...");
-        const profile = await keycloak.loadUserProfile();
-        console.log("User profile loaded:", profile);
+
+        // Get user info from token claims instead of profile endpoint
+        console.log("Getting user info from token...");
+        const tokenParsed = keycloak.tokenParsed;
+        console.log("Token parsed:", tokenParsed);
+
         setUser({
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          email: profile.email,
-          username: profile.username,
+          firstName:
+            tokenParsed.given_name || tokenParsed.name?.split(" ")[0] || "User",
+          lastName:
+            tokenParsed.family_name ||
+            tokenParsed.name?.split(" ").slice(1).join(" ") ||
+            "",
+          email: tokenParsed.email || "",
+          username: tokenParsed.preferred_username || tokenParsed.email || "",
         });
       } catch (error) {
         console.error("Failed to initialize Keycloak:", error);
