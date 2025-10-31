@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
             checkLoginIframe: false,
             silentCheckSsoRedirectUri:
               window.location.origin + "/silent-check-sso.html",
+            scope: "openid profile email",
           })
           .catch((err) => {
             console.error("Keycloak init threw error:", err);
