@@ -20,28 +20,45 @@ export const AuthProvider = ({ children }) => {
     const initKeycloak = async () => {
       try {
         console.log("Starting Keycloak initialization...");
-        const authenticated = await keycloak.init({
-          onLoad: "login-required",
-          checkLoginIframe: false,
-        });
+        const authenticated = await keycloak
+          .init({
+            onLoad: "check-sso",
+            checkLoginIframe: false,
+            silentCheckSsoRedirectUri:
+              window.location.origin + "/silent-check-sso.html",
+          })
+          .catch((err) => {
+            console.error("Keycloak init threw error:", err);
+            throw err;
+          });
 
         console.log("Keycloak initialized, authenticated:", authenticated);
-        setIsAuthenticated(authenticated);
 
-        if (authenticated) {
-          console.log("Loading user profile...");
-          const profile = await keycloak.loadUserProfile();
-          console.log("User profile loaded:", profile);
-          setUser({
-            firstName: profile.firstName,
-            lastName: profile.lastName,
-            email: profile.email,
-            username: profile.username,
-          });
+        if (!authenticated) {
+          console.log("Not authenticated, redirecting to login...");
+          keycloak.login();
+          return;
         }
+
+        setIsAuthenticated(authenticated);
+        console.log("Loading user profile...");
+        const profile = await keycloak.loadUserProfile();
+        console.log("User profile loaded:", profile);
+        setUser({
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          email: profile.email,
+          username: profile.username,
+        });
       } catch (error) {
         console.error("Failed to initialize Keycloak:", error);
-        console.error("Error details:", error.message, error.stack);
+        console.error("Error type:", typeof error);
+        console.error("Error details:", JSON.stringify(error));
+        if (error && typeof error === "object") {
+          console.error("Error keys:", Object.keys(error));
+          console.error("Error message:", error.message);
+          console.error("Error stack:", error.stack);
+        }
       } finally {
         console.log(
           "Keycloak initialization complete, setting loading to false"
