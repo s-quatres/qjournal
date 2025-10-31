@@ -19,15 +19,19 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initKeycloak = async () => {
       try {
+        console.log("Starting Keycloak initialization...");
         const authenticated = await keycloak.init({
           onLoad: "login-required",
           checkLoginIframe: false,
         });
 
+        console.log("Keycloak initialized, authenticated:", authenticated);
         setIsAuthenticated(authenticated);
 
         if (authenticated) {
+          console.log("Loading user profile...");
           const profile = await keycloak.loadUserProfile();
+          console.log("User profile loaded:", profile);
           setUser({
             firstName: profile.firstName,
             lastName: profile.lastName,
@@ -37,7 +41,11 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error("Failed to initialize Keycloak:", error);
+        console.error("Error details:", error.message, error.stack);
       } finally {
+        console.log(
+          "Keycloak initialization complete, setting loading to false"
+        );
         setLoading(false);
       }
     };
