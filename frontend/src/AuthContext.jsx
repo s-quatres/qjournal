@@ -73,13 +73,13 @@ const AuthProviderInner = ({ children }) => {
 export const AuthProvider = ({ children }) => {
   const handleEvent = (event, error) => {
     console.log("Keycloak event:", event, error);
-    
-    if (event === 'onInitError') {
+
+    if (event === "onInitError") {
       console.error("Keycloak initialization error details:", {
         error,
         authenticated: keycloak.authenticated,
-        token: keycloak.token ? 'present' : 'missing',
-        refreshToken: keycloak.refreshToken ? 'present' : 'missing',
+        token: keycloak.token ? "present" : "missing",
+        refreshToken: keycloak.refreshToken ? "present" : "missing",
       });
     }
   };
