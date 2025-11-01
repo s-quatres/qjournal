@@ -31,6 +31,14 @@ export const AuthProvider = ({ children }) => {
         console.log("Keycloak object exists:", !!keycloak);
         console.log("Keycloak.init function exists:", typeof keycloak.init);
         console.log("Window location:", window.location.href);
+
+        // If there's a stale authorization code in the URL, clear it first
+        if (window.location.hash && window.location.hash.includes("code=")) {
+          console.warn(
+            "Found authorization code in URL, clearing it to start fresh"
+          );
+          window.history.replaceState(null, "", window.location.pathname);
+        }
         console.log("Init config:", {
           onLoad: "check-sso",
           checkLoginIframe: false,
