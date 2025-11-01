@@ -1,5 +1,4 @@
-import React, { createContext, useContext } from "react";
-import { ReactKeycloakProvider, useKeycloak } from "@react-keycloak/web";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import keycloak from "./keycloak";
 
 const AuthContext = createContext();
@@ -12,100 +11,101 @@ export const useAuth = () => {
   return context;
 };
 
-// Inner provider that uses the keycloak hook
-const AuthProviderInner = ({ children }) => {
-  const { keycloak: kc, initialized } = useKeycloak();
+export const AuthProvider = ({ children }) => {
+  const [initialized, setInitialized] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
 
-  // Clear URL fragment after successful authentication
-  React.useEffect(() => {
-    if (initialized && kc.authenticated && window.location.hash) {
-      console.log(
-        "Authentication successful, clearing OAuth fragment from URL"
-      );
-      window.history.replaceState(
-        {},
-        document.title,
-        window.location.pathname + window.location.search
-      );
-    }
+  useEffect(() => {
+    console.log("Initializing Keycloak...");
+    
+    keycloak
+      .init({
+        onLoad: "check-sso",
+        checkLoginIframe: false,
+        responseMode: "fragment",
+      })
+      .then((auth) => {
+        console.log("Keycloak init success. Authenticated:", auth);
+        console.log("Token present:", keycloak.token ? "yes" : "no");
+        console.log("Token parsed:", keycloak.tokenParsed);
+        
+        setAuthenticated(auth);
+        setInitialized(true);
 
-    if (initialized) {
-      console.log("Keycloak initialized. Authenticated:", kc.authenticated);
-      if (!kc.authenticated) {
-        // Log the URL to check if we have an auth code
-        console.log("Current URL hash:", window.location.hash);
-        console.log("Current URL search:", window.location.search);
-      }
-    }
-  }, [initialized, kc.authenticated]);
+        if (auth && keycloak.tokenParsed) {
+          setUser({
+            firstName:
+              keycloak.tokenParsed.given_name ||
+              keycloak.tokenParsed.name?.split(" ")[0] ||
+              "User",
+            lastName:
+              keycloak.tokenParsed.family_name ||
+              keycloak.tokenParsed.name?.split(" ").slice(1).join(" ") ||
+              "",
+            email: keycloak.tokenParsed.email || "",
+            username:
+              keycloak.tokenParsed.preferred_username ||
+              keycloak.tokenParsed.email ||
+              "",
+          });
 
-  const user =
-    kc.authenticated && kc.tokenParsed
-      ? {
-          firstName:
-            kc.tokenParsed.given_name ||
-            kc.tokenParsed.name?.split(" ")[0] ||
-            "User",
-          lastName:
-            kc.tokenParsed.family_name ||
-            kc.tokenParsed.name?.split(" ").slice(1).join(" ") ||
-            "",
-          email: kc.tokenParsed.email || "",
-          username:
-            kc.tokenParsed.preferred_username || kc.tokenParsed.email || "",
+          // Clear URL fragment after successful auth
+          if (window.location.hash) {
+            console.log("Clearing OAuth fragment from URL");
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname + window.location.search
+            );
+          }
         }
-      : null;
+      })
+      .catch((error) => {
+        console.error("Keycloak init failed:", error);
+        setInitialized(true);
+      });
 
-  const login = () => kc.login();
-  const logout = () => kc.logout();
+    // Token refresh
+    keycloak.onTokenExpired = () => {
+      console.log("Token expired, refreshing...");
+      keycloak
+        .updateToken(30)
+        .then((refreshed) => {
+          if (refreshed) {
+            console.log("Token refreshed");
+          }
+        })
+        .catch(() => {
+          console.error("Failed to refresh token");
+          setAuthenticated(false);
+          setUser(null);
+        });
+    };
+  }, []);
+
+  const login = () => {
+    console.log("Redirecting to login...");
+    keycloak.login();
+  };
+
+  const logout = () => {
+    console.log("Logging out...");
+    keycloak.logout();
+  };
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: kc.authenticated || false,
+        isAuthenticated: authenticated,
         user,
         loading: !initialized,
         login,
         logout,
-        keycloak: kc,
+        keycloak,
       }}
     >
       {children}
     </AuthContext.Provider>
-  );
-};
-
-export const AuthProvider = ({ children }) => {
-  const handleEvent = (event, error) => {
-    console.log("Keycloak event:", event, error);
-
-    if (event === "onInitError") {
-      console.error("Keycloak initialization error details:", {
-        error,
-        authenticated: keycloak.authenticated,
-        token: keycloak.token ? "present" : "missing",
-        refreshToken: keycloak.refreshToken ? "present" : "missing",
-      });
-    }
-  };
-
-  const handleTokens = (tokens) => {
-    console.log("Keycloak tokens:", tokens);
-  };
-
-  return (
-    <ReactKeycloakProvider
-      authClient={keycloak}
-      initOptions={{
-        onLoad: "check-sso",
-        checkLoginIframe: false,
-        responseMode: "fragment",
-      }}
-      onEvent={handleEvent}
-      onTokens={handleTokens}
-      LoadingComponent={<div>Loading authentication...</div>}
-    >
-      <AuthProviderInner>{children}</AuthProviderInner>
-    </ReactKeycloakProvider>
   );
 };
