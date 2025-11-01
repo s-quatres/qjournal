@@ -31,6 +31,11 @@ const AuthProviderInner = ({ children }) => {
 
     if (initialized) {
       console.log("Keycloak initialized. Authenticated:", kc.authenticated);
+      if (!kc.authenticated) {
+        // Log the URL to check if we have an auth code
+        console.log("Current URL hash:", window.location.hash);
+        console.log("Current URL search:", window.location.search);
+      }
     }
   }, [initialized, kc.authenticated]);
 
