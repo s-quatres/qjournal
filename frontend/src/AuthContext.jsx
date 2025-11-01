@@ -18,12 +18,24 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     console.log("Initializing Keycloak...");
+    console.log("Current URL:", window.location.href);
+    console.log("Has hash:", window.location.hash);
+
+    // Add error handlers
+    keycloak.onAuthError = (errorData) => {
+      console.error("onAuthError:", errorData);
+    };
+
+    keycloak.onAuthRefreshError = () => {
+      console.error("onAuthRefreshError");
+    };
 
     keycloak
       .init({
         onLoad: "check-sso",
         checkLoginIframe: false,
         responseMode: "fragment",
+        enableLogging: true,
       })
       .then((auth) => {
         console.log("Keycloak init success. Authenticated:", auth);
