@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     console.log("Initializing Keycloak...");
-    
+
     keycloak
       .init({
         onLoad: "check-sso",
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
         console.log("Keycloak init success. Authenticated:", auth);
         console.log("Token present:", keycloak.token ? "yes" : "no");
         console.log("Token parsed:", keycloak.tokenParsed);
-        
+
         setAuthenticated(auth);
         setInitialized(true);
 
@@ -63,6 +63,12 @@ export const AuthProvider = ({ children }) => {
       })
       .catch((error) => {
         console.error("Keycloak init failed:", error);
+        console.error("Error details:", {
+          message: error?.message,
+          stack: error?.stack,
+          name: error?.name,
+          error: JSON.stringify(error, null, 2),
+        });
         setInitialized(true);
       });
 
