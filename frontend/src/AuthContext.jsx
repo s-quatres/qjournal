@@ -16,23 +16,23 @@ export const useAuth = () => {
 const AuthProviderInner = ({ children }) => {
   const { keycloak: kc, initialized } = useKeycloak();
 
-  // Clear URL fragment after initialization to prevent code reuse
+  // Clear URL fragment after successful authentication
   React.useEffect(() => {
-    if (initialized) {
-      // Remove OAuth fragments from URL after successful init
-      if (window.location.hash) {
-        console.log("Clearing OAuth fragment from URL");
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname + window.location.search
-        );
-      }
+    if (initialized && kc.authenticated && window.location.hash) {
+      console.log(
+        "Authentication successful, clearing OAuth fragment from URL"
+      );
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname + window.location.search
+      );
+    }
 
-      // Log authentication status
+    if (initialized) {
       console.log("Keycloak initialized. Authenticated:", kc.authenticated);
     }
-  }, [initialized, kc, kc.authenticated]);
+  }, [initialized, kc.authenticated]);
 
   const user =
     kc.authenticated && kc.tokenParsed
@@ -71,33 +71,8 @@ const AuthProviderInner = ({ children }) => {
 };
 
 export const AuthProvider = ({ children }) => {
-  // Store the auth code immediately to prevent double use
-  React.useEffect(() => {
-    if (window.location.hash.includes("code=")) {
-      const hash = window.location.hash;
-      const alreadyProcessed = sessionStorage.getItem("auth_code_processed");
-
-      if (alreadyProcessed === hash) {
-        console.log("Auth code already processed, clearing URL");
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname + window.location.search
-        );
-      } else {
-        console.log("New auth code detected, marking for processing");
-        sessionStorage.setItem("auth_code_processed", hash);
-      }
-    }
-  }, []);
-
   const handleEvent = (event, error) => {
     console.log("Keycloak event:", event, error);
-
-    // Clear the processed flag on successful auth
-    if (event === "onAuthSuccess") {
-      sessionStorage.removeItem("auth_code_processed");
-    }
   };
 
   const handleTokens = (tokens) => {
