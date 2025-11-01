@@ -73,26 +73,30 @@ const AuthProviderInner = ({ children }) => {
 export const AuthProvider = ({ children }) => {
   // Store the auth code immediately to prevent double use
   React.useEffect(() => {
-    if (window.location.hash.includes('code=')) {
+    if (window.location.hash.includes("code=")) {
       const hash = window.location.hash;
-      const alreadyProcessed = sessionStorage.getItem('auth_code_processed');
-      
+      const alreadyProcessed = sessionStorage.getItem("auth_code_processed");
+
       if (alreadyProcessed === hash) {
-        console.log('Auth code already processed, clearing URL');
-        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+        console.log("Auth code already processed, clearing URL");
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + window.location.search
+        );
       } else {
-        console.log('New auth code detected, marking for processing');
-        sessionStorage.setItem('auth_code_processed', hash);
+        console.log("New auth code detected, marking for processing");
+        sessionStorage.setItem("auth_code_processed", hash);
       }
     }
   }, []);
 
   const handleEvent = (event, error) => {
     console.log("Keycloak event:", event, error);
-    
+
     // Clear the processed flag on successful auth
-    if (event === 'onAuthSuccess') {
-      sessionStorage.removeItem('auth_code_processed');
+    if (event === "onAuthSuccess") {
+      sessionStorage.removeItem("auth_code_processed");
     }
   };
 
