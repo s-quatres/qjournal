@@ -17,103 +17,61 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const initLog = `[${new Date().toISOString()}] Initializing Keycloak... URL: ${
-      window.location.href
-    }`;
-    console.log(initLog);
-    sessionStorage.setItem("kc_last_init", initLog);
-
-    // Add error handlers
-    keycloak.onAuthError = (errorData) => {
-      const errLog = `[${new Date().toISOString()}] onAuthError: ${JSON.stringify(
-        errorData
-      )}`;
-      console.error(errLog);
-      sessionStorage.setItem("kc_last_error", errLog);
-    };
-
-    keycloak.onAuthRefreshError = () => {
-      const errLog = `[${new Date().toISOString()}] onAuthRefreshError`;
-      console.error(errLog);
-      sessionStorage.setItem("kc_last_error", errLog);
-    };
-
-    keycloak.onAuthLogout = () => {
-      const logoutLog = `[${new Date().toISOString()}] onAuthLogout`;
-      console.log(logoutLog);
-      sessionStorage.setItem("kc_last_event", logoutLog);
-    };
+    console.log("Initializing Keycloak...");
+    console.log("Current URL:", window.location.href);
 
     keycloak
       .init({
         onLoad: "check-sso",
         checkLoginIframe: false,
-        responseMode: "fragment",
-        enableLogging: true,
+        flow: "standard",
       })
       .then((auth) => {
-        const successLog = `[${new Date().toISOString()}] Keycloak init success. Authenticated: ${auth}, Token: ${
-          keycloak.token ? "present" : "missing"
-        }`;
-        console.log(successLog);
-        sessionStorage.setItem("kc_last_success", successLog);
+        console.log("Keycloak init success. Authenticated:", auth);
 
-        setAuthenticated(auth);
-        setInitialized(true);
+        if (auth) {
+          console.log("Token:", keycloak.token ? "present" : "missing");
+          console.log("Token parsed:", keycloak.tokenParsed);
 
-        if (auth && keycloak.tokenParsed) {
-          setUser({
-            firstName:
-              keycloak.tokenParsed.given_name ||
-              keycloak.tokenParsed.name?.split(" ")[0] ||
-              "User",
-            lastName:
-              keycloak.tokenParsed.family_name ||
-              keycloak.tokenParsed.name?.split(" ").slice(1).join(" ") ||
-              "",
-            email: keycloak.tokenParsed.email || "",
-            username:
-              keycloak.tokenParsed.preferred_username ||
-              keycloak.tokenParsed.email ||
-              "",
-          });
+          setAuthenticated(true);
 
-          // Clear URL fragment after successful auth
-          if (window.location.hash) {
-            console.log("Clearing OAuth fragment from URL");
-            window.history.replaceState(
-              {},
-              document.title,
-              window.location.pathname + window.location.search
-            );
+          if (keycloak.tokenParsed) {
+            setUser({
+              firstName:
+                keycloak.tokenParsed.given_name ||
+                keycloak.tokenParsed.name?.split(" ")[0] ||
+                "User",
+              lastName:
+                keycloak.tokenParsed.family_name ||
+                keycloak.tokenParsed.name?.split(" ").slice(1).join(" ") ||
+                "",
+              email: keycloak.tokenParsed.email || "",
+              username:
+                keycloak.tokenParsed.preferred_username ||
+                keycloak.tokenParsed.email ||
+                "",
+            });
+
+            // Clear URL fragment
+            if (window.location.hash) {
+              console.log("Clearing OAuth fragment");
+              window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname + window.location.search
+              );
+            }
           }
         }
+
+        setInitialized(true);
       })
       .catch((error) => {
-        const failLog = `[${new Date().toISOString()}] Keycloak init failed: ${
-          error?.message || "undefined"
-        }`;
-        console.error(failLog);
-        sessionStorage.setItem("kc_last_fail", failLog);
-        sessionStorage.setItem(
-          "kc_last_error_detail",
-          JSON.stringify({
-            message: error?.message,
-            name: error?.name,
-            error: error,
-          })
-        );
+        console.error("Keycloak init failed:", error);
+        console.error("Error type:", typeof error);
+        console.error("Error stringified:", JSON.stringify(error));
         setInitialized(true);
       });
-
-    // Log stored events on mount
-    console.log("Previous events:", {
-      lastInit: sessionStorage.getItem("kc_last_init"),
-      lastSuccess: sessionStorage.getItem("kc_last_success"),
-      lastFail: sessionStorage.getItem("kc_last_fail"),
-      lastError: sessionStorage.getItem("kc_last_error"),
-      lastEvent: sessionStorage.getItem("kc_last_event"),
-    });
 
     // Token refresh
     keycloak.onTokenExpired = () => {
