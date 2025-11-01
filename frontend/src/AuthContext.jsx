@@ -31,21 +31,6 @@ export const AuthProvider = ({ children }) => {
         console.log("Keycloak object exists:", !!keycloak);
         console.log("Keycloak.init function exists:", typeof keycloak.init);
         console.log("Window location:", window.location.href);
-
-        // If there's a stale authorization code in the URL, clear it ONCE
-        const hashCleared = sessionStorage.getItem("hash_cleared");
-        if (
-          window.location.hash &&
-          window.location.hash.includes("code=") &&
-          !hashCleared
-        ) {
-          console.warn(
-            "Found authorization code in URL, clearing it to start fresh"
-          );
-          sessionStorage.setItem("hash_cleared", "true");
-          window.history.replaceState(null, "", window.location.pathname);
-          // Don't return here, let it continue to init
-        }
         console.log("Init config:", {
           onLoad: "check-sso",
           checkLoginIframe: false,
@@ -149,25 +134,11 @@ export const AuthProvider = ({ children }) => {
           console.error("Error stack:", error.stack);
         }
 
-        // If there's a code in the URL hash, it might be expired/used
-        // Clear it and redirect to login (but only once)
-        if (window.location.hash && window.location.hash.includes("code=")) {
-          const retryFlag = sessionStorage.getItem("keycloak_retry_attempted");
-          if (retryFlag) {
-            console.error(
-              "Already attempted retry, not retrying again to avoid infinite loop"
-            );
-            console.error("Please clear your browser cache and try again");
-          } else {
-            console.warn(
-              "Authorization code in URL might be expired, clearing and redirecting..."
-            );
-            sessionStorage.setItem("keycloak_retry_attempted", "true");
-            window.location.hash = "";
-            window.location.reload();
-            return;
-          }
-        }
+        // Don't automatically retry - just log the error and stop
+        console.error("Keycloak initialization failed.");
+        console.error(
+          "To fix: Clear browser cache/storage and reload the page"
+        );
       } finally {
         console.log(
           "Keycloak initialization complete, setting loading to false"
