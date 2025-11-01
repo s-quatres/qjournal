@@ -14,7 +14,7 @@ import { Loader2, BookOpen, Sparkles, LogOut } from "lucide-react";
 import { useAuth } from "../AuthContext";
 
 const JournalApp = () => {
-  const { user, logout, getToken, loading: authLoading } = useAuth();
+  const { user, logout, keycloak, loading: authLoading } = useAuth();
 
   // Define all questions in one place - add/remove/edit questions here
   const questions = [
@@ -88,12 +88,11 @@ const JournalApp = () => {
     try {
       console.log("Submitting journal answers:", answers);
 
-      const token = getToken();
       const response = await fetch("/api/journal/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${keycloak.token}`,
         },
         body: JSON.stringify({ answers }),
       });

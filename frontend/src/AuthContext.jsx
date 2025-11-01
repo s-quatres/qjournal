@@ -28,27 +28,11 @@ const AuthProviderInner = ({ children }) => {
           window.location.pathname + window.location.search
         );
       }
-    }
-  }, [initialized]);
 
-  // Redirect to login if not authenticated after init (but only once)
-  React.useEffect(() => {
-    if (initialized && !kc.authenticated) {
-      const loginAttempted = sessionStorage.getItem("login_attempted");
-      if (!loginAttempted) {
-        console.log("Not authenticated, redirecting to login...");
-        sessionStorage.setItem("login_attempted", "true");
-        kc.login();
-      } else {
-        console.error(
-          "Login already attempted but failed. Check Keycloak configuration."
-        );
-      }
-    } else if (initialized && kc.authenticated) {
-      // Clear the flag on successful auth
-      sessionStorage.removeItem("login_attempted");
+      // Log authentication status
+      console.log("Keycloak initialized. Authenticated:", kc.authenticated);
     }
-  }, [initialized, kc.authenticated, kc]);
+  }, [initialized, kc, kc.authenticated]);
 
   const user =
     kc.authenticated && kc.tokenParsed
