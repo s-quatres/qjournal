@@ -73,6 +73,15 @@ const AuthProviderInner = ({ children }) => {
 export const AuthProvider = ({ children }) => {
   const handleEvent = (event, error) => {
     console.log("Keycloak event:", event, error);
+    
+    if (event === 'onInitError') {
+      console.error("Keycloak initialization error details:", {
+        error,
+        authenticated: keycloak.authenticated,
+        token: keycloak.token ? 'present' : 'missing',
+        refreshToken: keycloak.refreshToken ? 'present' : 'missing',
+      });
+    }
   };
 
   const handleTokens = (tokens) => {
@@ -86,6 +95,7 @@ export const AuthProvider = ({ children }) => {
         onLoad: "check-sso",
         checkLoginIframe: false,
         responseMode: "fragment",
+        pkceMethod: "S256",
       }}
       onEvent={handleEvent}
       onTokens={handleTokens}
