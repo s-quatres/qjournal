@@ -33,7 +33,12 @@ export const AuthProvider = ({ children }) => {
             throw err;
           });
 
-        console.log("Keycloak initialized, authenticated:", authenticated);
+        console.log("========== KEYCLOAK INIT SUCCESS ==========");
+        console.log("Authenticated:", authenticated);
+        console.log("Keycloak object:", keycloak);
+        console.log("Token:", keycloak.token);
+        console.log("Refresh token:", keycloak.refreshToken);
+        console.log("ID token:", keycloak.idToken);
 
         if (!authenticated) {
           console.log("Not authenticated, redirecting to login...");
@@ -41,23 +46,54 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
+        console.log("========== SETTING AUTHENTICATED ==========");
         setIsAuthenticated(authenticated);
 
-        // Get user info from token claims instead of profile endpoint
-        console.log("Getting user info from token...");
+        console.log("========== EXTRACTING USER INFO ==========");
         const tokenParsed = keycloak.tokenParsed;
-        console.log("Token parsed:", tokenParsed);
+        console.log("Token parsed object:", tokenParsed);
+        console.log(
+          "All token keys:",
+          tokenParsed ? Object.keys(tokenParsed) : "NO TOKEN"
+        );
+        console.log("Token as JSON:", JSON.stringify(tokenParsed, null, 2));
 
+        if (!tokenParsed) {
+          throw new Error("No token parsed!");
+        }
+
+        console.log("Extracting fields:");
+        console.log("  - given_name:", tokenParsed.given_name);
+        console.log("  - family_name:", tokenParsed.family_name);
+        console.log("  - name:", tokenParsed.name);
+        console.log("  - email:", tokenParsed.email);
+        console.log("  - preferred_username:", tokenParsed.preferred_username);
+
+        const firstName =
+          tokenParsed.given_name || tokenParsed.name?.split(" ")[0] || "User";
+        const lastName =
+          tokenParsed.family_name ||
+          tokenParsed.name?.split(" ").slice(1).join(" ") ||
+          "";
+        const email = tokenParsed.email || "";
+        const username =
+          tokenParsed.preferred_username || tokenParsed.email || "";
+
+        console.log("Computed user object:");
+        console.log("  - firstName:", firstName);
+        console.log("  - lastName:", lastName);
+        console.log("  - email:", email);
+        console.log("  - username:", username);
+
+        console.log("========== SETTING USER STATE ==========");
         setUser({
-          firstName:
-            tokenParsed.given_name || tokenParsed.name?.split(" ")[0] || "User",
-          lastName:
-            tokenParsed.family_name ||
-            tokenParsed.name?.split(" ").slice(1).join(" ") ||
-            "",
-          email: tokenParsed.email || "",
-          username: tokenParsed.preferred_username || tokenParsed.email || "",
+          firstName,
+          lastName,
+          email,
+          username,
         });
+
+        console.log("========== USER INFO SET SUCCESSFULLY ==========");
       } catch (error) {
         console.error("Failed to initialize Keycloak:", error);
         console.error("Error type:", typeof error);
