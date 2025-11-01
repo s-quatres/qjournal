@@ -100,7 +100,6 @@ export const AuthProvider = ({ children }) => {
         onLoad: "check-sso",
         checkLoginIframe: false,
         responseMode: "fragment",
-        pkceMethod: "S256",
       }}
       onEvent={handleEvent}
       onTokens={handleTokens}
