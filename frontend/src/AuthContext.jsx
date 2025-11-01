@@ -135,13 +135,19 @@ export const AuthProvider = ({ children }) => {
         }
 
         // If there's a code in the URL hash, it might be expired/used
-        // Clear it and redirect to login
+        // Clear it and redirect to login (but only once)
         if (window.location.hash && window.location.hash.includes("code=")) {
-          console.warn(
-            "Authorization code in URL might be expired, clearing and redirecting..."
-          );
-          window.location.hash = "";
-          window.location.reload();
+          const retryFlag = sessionStorage.getItem('keycloak_retry_attempted');
+          if (retryFlag) {
+            console.error("Already attempted retry, not retrying again to avoid infinite loop");
+            console.error("Please clear your browser cache and try again");
+          } else {
+            console.warn("Authorization code in URL might be expired, clearing and redirecting...");
+            sessionStorage.setItem('keycloak_retry_attempted', 'true');
+            window.location.hash = "";
+            window.location.reload();
+            return;
+          }
         }
       } finally {
         console.log(
