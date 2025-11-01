@@ -16,6 +16,14 @@ export const useAuth = () => {
 const AuthProviderInner = ({ children }) => {
   const { keycloak: kc, initialized } = useKeycloak();
 
+  // Redirect to login if not authenticated after init
+  React.useEffect(() => {
+    if (initialized && !kc.authenticated) {
+      console.log("Not authenticated, redirecting to login...");
+      kc.login();
+    }
+  }, [initialized, kc]);
+
   const user =
     kc.authenticated && kc.tokenParsed
       ? {
@@ -53,14 +61,25 @@ const AuthProviderInner = ({ children }) => {
 };
 
 export const AuthProvider = ({ children }) => {
+  const handleEvent = (event, error) => {
+    console.log("Keycloak event:", event, error);
+  };
+
+  const handleTokens = (tokens) => {
+    console.log("Keycloak tokens:", tokens);
+  };
+
   return (
     <ReactKeycloakProvider
       authClient={keycloak}
       initOptions={{
-        onLoad: "login-required",
+        onLoad: "check-sso",
         checkLoginIframe: false,
-        pkceMethod: "S256",
+        responseMode: "fragment",
       }}
+      onEvent={handleEvent}
+      onTokens={handleTokens}
+      LoadingComponent={<div>Loading authentication...</div>}
     >
       <AuthProviderInner>{children}</AuthProviderInner>
     </ReactKeycloakProvider>
