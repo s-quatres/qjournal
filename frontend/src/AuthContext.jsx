@@ -16,13 +16,39 @@ export const useAuth = () => {
 const AuthProviderInner = ({ children }) => {
   const { keycloak: kc, initialized } = useKeycloak();
 
-  // Redirect to login if not authenticated after init
+  // Clear URL fragment after initialization to prevent code reuse
+  React.useEffect(() => {
+    if (initialized) {
+      // Remove OAuth fragments from URL after successful init
+      if (window.location.hash) {
+        console.log("Clearing OAuth fragment from URL");
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + window.location.search
+        );
+      }
+    }
+  }, [initialized]);
+
+  // Redirect to login if not authenticated after init (but only once)
   React.useEffect(() => {
     if (initialized && !kc.authenticated) {
-      console.log("Not authenticated, redirecting to login...");
-      kc.login();
+      const loginAttempted = sessionStorage.getItem("login_attempted");
+      if (!loginAttempted) {
+        console.log("Not authenticated, redirecting to login...");
+        sessionStorage.setItem("login_attempted", "true");
+        kc.login();
+      } else {
+        console.error(
+          "Login already attempted but failed. Check Keycloak configuration."
+        );
+      }
+    } else if (initialized && kc.authenticated) {
+      // Clear the flag on successful auth
+      sessionStorage.removeItem("login_attempted");
     }
-  }, [initialized, kc]);
+  }, [initialized, kc.authenticated, kc]);
 
   const user =
     kc.authenticated && kc.tokenParsed
