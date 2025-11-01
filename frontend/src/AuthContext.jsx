@@ -32,20 +32,28 @@ export const AuthProvider = ({ children }) => {
         });
 
         console.log("Starting Keycloak initialization...");
-        const authenticated = await keycloak
-          .init({
-            onLoad: "check-sso",
+
+        // Try init with detailed promise handling
+        let authenticated;
+        try {
+          const initPromise = keycloak.init({
+            onLoad: "login-required",
             checkLoginIframe: false,
             scope: "openid profile email",
-          })
-          .catch((err) => {
-            console.error("Keycloak init threw error:", err);
-            console.error("Error type in catch:", typeof err);
-            console.error("Error is null?", err === null);
-            console.error("Error is undefined?", err === undefined);
-            console.error("Error stringified:", String(err));
-            throw err;
+            pkceMethod: "S256",
           });
+
+          console.log("Init promise created:", initPromise);
+          authenticated = await initPromise;
+          console.log("Init promise resolved with:", authenticated);
+        } catch (err) {
+          console.error("Keycloak init threw error:", err);
+          console.error("Error type in catch:", typeof err);
+          console.error("Error is null?", err === null);
+          console.error("Error is undefined?", err === undefined);
+          console.error("Error stringified:", String(err));
+          throw new Error("Keycloak init failed: " + String(err));
+        }
 
         console.log("========== KEYCLOAK INIT SUCCESS ==========");
         console.log("Authenticated:", authenticated);
