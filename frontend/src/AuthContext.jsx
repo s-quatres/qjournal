@@ -19,17 +19,31 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initKeycloak = async () => {
       try {
+        console.log("========== PRE-INIT CHECKS ==========");
+        console.log("Keycloak object exists:", !!keycloak);
+        console.log("Keycloak.init function exists:", typeof keycloak.init);
+        console.log("Window location:", window.location.href);
+        console.log("Init config:", {
+          onLoad: "check-sso",
+          checkLoginIframe: false,
+          silentCheckSsoRedirectUri:
+            window.location.origin + "/silent-check-sso.html",
+          scope: "openid profile email",
+        });
+
         console.log("Starting Keycloak initialization...");
         const authenticated = await keycloak
           .init({
             onLoad: "check-sso",
             checkLoginIframe: false,
-            silentCheckSsoRedirectUri:
-              window.location.origin + "/silent-check-sso.html",
             scope: "openid profile email",
           })
           .catch((err) => {
             console.error("Keycloak init threw error:", err);
+            console.error("Error type in catch:", typeof err);
+            console.error("Error is null?", err === null);
+            console.error("Error is undefined?", err === undefined);
+            console.error("Error stringified:", String(err));
             throw err;
           });
 
