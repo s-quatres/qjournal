@@ -15,8 +15,16 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
+    // Prevent double initialization (React StrictMode issue)
+    if (initialized) {
+      console.log("Already initialized, skipping...");
+      return;
+    }
+    setInitialized(true);
+
     const initKeycloak = async () => {
       try {
         console.log("========== PRE-INIT CHECKS ==========");
@@ -124,6 +132,16 @@ export const AuthProvider = ({ children }) => {
           console.error("Error keys:", Object.keys(error));
           console.error("Error message:", error.message);
           console.error("Error stack:", error.stack);
+        }
+
+        // If there's a code in the URL hash, it might be expired/used
+        // Clear it and redirect to login
+        if (window.location.hash && window.location.hash.includes("code=")) {
+          console.warn(
+            "Authorization code in URL might be expired, clearing and redirecting..."
+          );
+          window.location.hash = "";
+          window.location.reload();
         }
       } finally {
         console.log(
