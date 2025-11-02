@@ -54,6 +54,29 @@ To customize the database connection, edit `k8s/database-config.yaml` and update
 - `DATABASE_NAME`: Database name (default: qjournal)
 - `DATABASE_USER`: Database username (default: postgres)
 
+## Initialize Database
+
+Run the database initialization job to create the database and schema:
+
+```bash
+kubectl apply -f k8s/db-init-job.yaml
+```
+
+Check the job status:
+
+```bash
+kubectl get jobs -n qjournal
+kubectl logs job/qjournal-db-init -n qjournal
+```
+
+The job will:
+- Create the `qjournal` database if it doesn't exist
+- Create the `users` table for storing user information
+- Create the `journal_entries` table for storing daily journal entries
+- Set up indexes for efficient queries
+
+Note: The job will complete successfully even if the database already exists.
+
 ## Deploy the Application
 
 Deploy all resources:
