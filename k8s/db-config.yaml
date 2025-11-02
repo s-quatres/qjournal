@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-config
+  namespace: qjournal
+data:
+  DB_HOST: "postgres-service.postgres.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "qjournal"
+  DB_USER: "postgres"
