@@ -64,7 +64,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: postgres-secret
-                  key: password
+                  key: POSTGRES_PASSWORD
           livenessProbe:
             httpGet:
               path: /health

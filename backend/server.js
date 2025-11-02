@@ -53,11 +53,10 @@ app.post("/api/journal/analyze", authenticateToken, async (req, res) => {
     // Get or create user in database
     console.log("[DB] Getting or creating user:", req.user.email);
     const user = await getOrCreateUser(
-      req.user.sub,
+      req.user.id, // req.user.id contains the 'sub' claim from JWT
       req.user.email,
-      `${req.user.given_name || req.user.firstName || ""} ${
-        req.user.family_name || req.user.lastName || ""
-      }`.trim()
+      req.user.name ||
+        `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim()
     );
 
     console.log(
