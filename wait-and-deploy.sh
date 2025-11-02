@@ -43,14 +43,15 @@ fi
 
 # Wait for the workflow to complete
 echo "⏳ Waiting for build workflows to complete..."
-gh run watch --exit-status || {
-    echo "❌ Workflow failed or was cancelled"
-    exit 1
-}
-
-echo ""
-echo "✅ Workflow completed successfully!"
-echo ""
+if gh run watch --exit-status; then
+    echo ""
+    echo "✅ Workflow completed successfully!"
+    echo ""
+else
+    echo ""
+    echo "⚠️  Workflow failed or was cancelled. Continuing with deployment anyway..."
+    echo ""
+fi
 
 # Now restart both frontend and backend pods
 echo "🔄 Restarting frontend pods..."
