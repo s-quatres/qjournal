@@ -9,79 +9,79 @@ spec:
     spec:
       restartPolicy: OnFailure
       containers:
-      - name: db-init
-        image: postgres:15-alpine
-        env:
-        - name: PGHOST
-          valueFrom:
-            configMapKeyRef:
-              name: db-config
-              key: DB_HOST
-        - name: PGPORT
-          valueFrom:
-            configMapKeyRef:
-              name: db-config
-              key: DB_PORT
-        - name: PGUSER
-          valueFrom:
-            configMapKeyRef:
-              name: db-config
-              key: DB_USER
-        - name: PGPASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secret
-              key: password
-        - name: PGDATABASE
-          value: postgres
-        - name: TARGET_DATABASE
-          valueFrom:
-            configMapKeyRef:
-              name: db-config
-              key: DB_NAME
-        command:
-        - /bin/sh
-        - -c
-        - |
-          echo "Checking if database exists..."
-          if psql -lqt | cut -d \| -f 1 | grep -qw $TARGET_DATABASE; then
-            echo "Database $TARGET_DATABASE already exists"
-          else
-            echo "Creating database $TARGET_DATABASE..."
-            psql -c "CREATE DATABASE $TARGET_DATABASE;"
-            echo "Database created successfully"
-          fi
-          
-          echo "Connecting to $TARGET_DATABASE to create schema..."
-          export PGDATABASE=$TARGET_DATABASE
-          
-          psql <<EOF
-          -- Create users table
-          CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            keycloak_sub VARCHAR(255) UNIQUE NOT NULL,
-            email VARCHAR(255),
-            name VARCHAR(255),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-          );
+        - name: db-init
+          image: postgres:15-alpine
+          env:
+            - name: PGHOST
+              valueFrom:
+                configMapKeyRef:
+                  name: db-config
+                  key: DB_HOST
+            - name: PGPORT
+              valueFrom:
+                configMapKeyRef:
+                  name: db-config
+                  key: DB_PORT
+            - name: PGUSER
+              valueFrom:
+                configMapKeyRef:
+                  name: db-config
+                  key: DB_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: PGDATABASE
+              value: postgres
+            - name: TARGET_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: db-config
+                  key: DB_NAME
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Checking if database exists..."
+              if psql -lqt | cut -d \| -f 1 | grep -qw $TARGET_DATABASE; then
+                echo "Database $TARGET_DATABASE already exists"
+              else
+                echo "Creating database $TARGET_DATABASE..."
+                psql -c "CREATE DATABASE $TARGET_DATABASE;"
+                echo "Database created successfully"
+              fi
 
-          -- Create journal_entries table
-          CREATE TABLE IF NOT EXISTS journal_entries (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            date DATE NOT NULL,
-            answers JSONB NOT NULL,
-            one_line_summary TEXT,
-            four_sentence_summary TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(user_id, date)
-          );
+              echo "Connecting to $TARGET_DATABASE to create schema..."
+              export PGDATABASE=$TARGET_DATABASE
 
-          -- Create indexes
-          CREATE INDEX IF NOT EXISTS idx_journal_entries_user_id ON journal_entries(user_id);
-          CREATE INDEX IF NOT EXISTS idx_journal_entries_date ON journal_entries(date);
-          CREATE INDEX IF NOT EXISTS idx_users_keycloak_sub ON users(keycloak_sub);
+              psql <<EOF
+              -- Create users table
+              CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                keycloak_sub VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255),
+                name VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+              );
 
-          EOF
-          
-          echo "Schema initialization complete"
+              -- Create journal_entries table
+              CREATE TABLE IF NOT EXISTS journal_entries (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                date DATE NOT NULL,
+                answers JSONB NOT NULL,
+                one_line_summary TEXT,
+                four_sentence_summary TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, date)
+              );
+
+              -- Create indexes
+              CREATE INDEX IF NOT EXISTS idx_journal_entries_user_id ON journal_entries(user_id);
+              CREATE INDEX IF NOT EXISTS idx_journal_entries_date ON journal_entries(date);
+              CREATE INDEX IF NOT EXISTS idx_users_keycloak_sub ON users(keycloak_sub);
+
+              EOF
+
+              echo "Schema initialization complete"

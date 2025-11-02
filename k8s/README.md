@@ -70,6 +70,7 @@ kubectl logs job/qjournal-db-init -n qjournal
 ```
 
 The job will:
+
 - Create the `qjournal` database if it doesn't exist
 - Create the `users` table for storing user information
 - Create the `journal_entries` table for storing daily journal entries
