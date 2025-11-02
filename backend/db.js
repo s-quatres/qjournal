@@ -92,29 +92,40 @@ async function saveJournalEntry(
   userId,
   answers,
   oneLineSummary,
-  fourSentenceSummary
+  fourSentenceSummary,
+  contentmentScore
 ) {
   const client = await pool.connect();
   try {
     console.log("[DB] Saving journal entry for user ID:", userId);
     console.log("[DB] Answers keys:", Object.keys(answers).join(", "));
+    console.log("[DB] Contentment score:", contentmentScore);
     const result = await client.query(
-      `INSERT INTO journal_entries (user_id, answers, one_line_summary, four_sentence_summary)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO journal_entries (user_id, answers, one_line_summary, four_sentence_summary, contentment_score)
+       VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (user_id, entry_date) 
        DO UPDATE SET 
          answers = EXCLUDED.answers,
          one_line_summary = EXCLUDED.one_line_summary,
          four_sentence_summary = EXCLUDED.four_sentence_summary,
+         contentment_score = EXCLUDED.contentment_score,
          created_at = CURRENT_TIMESTAMP
        RETURNING *`,
-      [userId, JSON.stringify(answers), oneLineSummary, fourSentenceSummary]
+      [
+        userId,
+        JSON.stringify(answers),
+        oneLineSummary,
+        fourSentenceSummary,
+        contentmentScore,
+      ]
     );
     console.log(
       "[DB] ✓ Journal entry saved - ID:",
       result.rows[0].id,
       "Date:",
-      result.rows[0].entry_date
+      result.rows[0].entry_date,
+      "Contentment:",
+      result.rows[0].contentment_score
     );
     return result.rows[0];
   } finally {

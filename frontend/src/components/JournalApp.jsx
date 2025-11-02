@@ -10,11 +10,19 @@ import {
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Alert, AlertDescription } from "./ui/alert";
-import { Loader2, BookOpen, Sparkles, LogOut } from "lucide-react";
+import {
+  Loader2,
+  BookOpen,
+  Sparkles,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
 import { useAuth } from "../AuthContext";
+import Dashboard from "./Dashboard";
 
 const JournalApp = () => {
   const { user, logout, keycloak, loading: authLoading } = useAuth();
+  const [showDashboard, setShowDashboard] = useState(true);
 
   // Define all questions in one place - add/remove/edit questions here
   const questions = [
@@ -150,6 +158,24 @@ const JournalApp = () => {
       <Button
         variant="outline"
         size="sm"
+        onClick={() => setShowDashboard(!showDashboard)}
+        className="flex items-center gap-2"
+      >
+        {showDashboard ? (
+          <>
+            <BookOpen className="w-4 h-4" />
+            New Entry
+          </>
+        ) : (
+          <>
+            <LayoutDashboard className="w-4 h-4" />
+            Dashboard
+          </>
+        )}
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
         onClick={logout}
         className="flex items-center gap-2"
       >
@@ -158,6 +184,19 @@ const JournalApp = () => {
       </Button>
     </div>
   );
+
+  // Show dashboard if requested
+  if (showDashboard) {
+    return (
+      <>
+        <UserHeader />
+        <Dashboard
+          onNavigateToJournal={() => setShowDashboard(false)}
+          token={keycloak.token}
+        />
+      </>
+    );
+  }
 
   if (currentStep === questions.length && summary) {
     return (
@@ -179,9 +218,18 @@ const JournalApp = () => {
                 {summary}
               </div>
             </div>
-            <Button onClick={handleReset} className="w-full">
-              Start New Entry
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setShowDashboard(true)}
+                variant="outline"
+                className="flex-1"
+              >
+                View Dashboard
+              </Button>
+              <Button onClick={handleReset} className="flex-1">
+                Start New Entry
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

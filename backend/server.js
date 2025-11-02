@@ -110,67 +110,105 @@ Please provide:
 3. A positive note to end on
 4. Steps for tomorrow based on the entries
 
-Keep your response personal, supportive, and concise (200-300 words). If any entry does not make sense, say so, and do not provide any feedback on that entry.`;
+Keep your response personal, supportive, and concise (200-300 words). If any entry does not make sense or is only one word, say so, and do not provide any feedback on that entry.`;
+
+    // Prompt for contentment score
+    const contentmentPrompt = `Based on these journal entries, rate the user's overall contentment level on a scale of 0-10, where:
+- 0-2: Very distressed, struggling significantly
+- 3-4: Somewhat troubled, facing challenges
+- 5-6: Neutral to moderately content
+- 7-8: Generally content and positive
+- 9-10: Very happy and fulfilled
+
+${entriesText}
+
+Respond with ONLY a single number from 0 to 10, nothing else.`;
 
     console.log("Making OpenAI API calls...");
 
-    // Generate all three summaries in parallel
-    const [oneLineCompletion, fourSentenceCompletion, fullCompletion] =
-      await Promise.all([
-        openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a concise summarizer. Provide only the requested single sentence summary, nothing more.",
-            },
-            {
-              role: "user",
-              content: oneLinePrompt,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 50,
-        }),
-        openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You provide exactly 4 insightful sentences, no more, no less.",
-            },
-            {
-              role: "user",
-              content: fourSentencePrompt,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 150,
-        }),
-        openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a supportive and insightful journaling assistant who helps people reflect on their day with empathy and wisdom. Don't be too positive or generic; tailor your responses to the user's actual entries.",
-            },
-            {
-              role: "user",
-              content: fullPrompt,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
-      ]);
+    // Generate all summaries and contentment score in parallel
+    const [
+      oneLineCompletion,
+      fourSentenceCompletion,
+      fullCompletion,
+      contentmentCompletion,
+    ] = await Promise.all([
+      openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a concise summarizer. Provide only the requested single sentence summary, nothing more.",
+          },
+          {
+            role: "user",
+            content: oneLinePrompt,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 50,
+      }),
+      openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You provide exactly 4 insightful sentences, no more, no less.",
+          },
+          {
+            role: "user",
+            content: fourSentencePrompt,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 150,
+      }),
+      openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a supportive and insightful journaling assistant who helps people reflect on their day with empathy and wisdom. Don't be too positive or generic; tailor your responses to the user's actual entries.",
+          },
+          {
+            role: "user",
+            content: fullPrompt,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
+      }),
+      openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an emotional assessment expert. Respond only with a single number from 0 to 10.",
+          },
+          {
+            role: "user",
+            content: contentmentPrompt,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 5,
+      }),
+    ]);
 
     const oneLineSummary = oneLineCompletion.choices[0].message.content.trim();
     const fourSentenceSummary =
       fourSentenceCompletion.choices[0].message.content.trim();
     const fullSummary = fullCompletion.choices[0].message.content;
+    const contentmentScoreRaw =
+      contentmentCompletion.choices[0].message.content.trim();
+    const contentmentScore = Math.max(
+      0,
+      Math.min(10, parseInt(contentmentScoreRaw) || 5)
+    );
 
     console.log("Successfully generated summaries");
     console.log("[DB] One-line summary:", oneLineSummary);
@@ -179,6 +217,7 @@ Keep your response personal, supportive, and concise (200-300 words). If any ent
       fourSentenceSummary.length,
       "chars"
     );
+    console.log("[DB] Contentment score:", contentmentScore);
 
     // Save to database
     console.log("[DB] Saving journal entry for user ID:", user.id);
@@ -186,7 +225,8 @@ Keep your response personal, supportive, and concise (200-300 words). If any ent
       user.id,
       answers,
       oneLineSummary,
-      fourSentenceSummary
+      fourSentenceSummary,
+      contentmentScore
     );
 
     console.log(
@@ -204,6 +244,41 @@ Keep your response personal, supportive, and concise (200-300 words). If any ent
     console.error("Full error:", error);
     res.status(500).json({
       error: "Failed to generate summary: " + error.message,
+      details: error.message,
+    });
+  }
+});
+
+app.get("/api/journal/entries", authenticateToken, async (req, res) => {
+  try {
+    console.log("[DB] Fetching entries for user:", req.user.email);
+
+    // Get or create user first
+    const user = await getOrCreateUser(
+      req.user.id,
+      req.user.email,
+      req.user.name ||
+        `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim()
+    );
+
+    // Fetch last 10 entries
+    const entries = await getUserEntries(user.id, 10);
+
+    console.log("[DB] Retrieved", entries.length, "entries");
+
+    // Format response to only include necessary fields
+    const formattedEntries = entries.map((entry) => ({
+      id: entry.id,
+      date: entry.entry_date,
+      oneLineSummary: entry.one_line_summary,
+      contentmentScore: entry.contentment_score,
+    }));
+
+    res.json({ entries: formattedEntries });
+  } catch (error) {
+    console.error("Error fetching entries:", error);
+    res.status(500).json({
+      error: "Failed to fetch entries",
       details: error.message,
     });
   }
