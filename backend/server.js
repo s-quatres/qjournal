@@ -3,7 +3,12 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const OpenAI = require("openai");
 const { authenticateToken } = require("./middleware/auth");
-const { initDatabase, getOrCreateUser, saveJournalEntry } = require("./db");
+const {
+  initDatabase,
+  getOrCreateUser,
+  saveJournalEntry,
+  getUserEntries,
+} = require("./db");
 
 dotenv.config();
 
