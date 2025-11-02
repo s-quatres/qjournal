@@ -56,6 +56,7 @@ async function initDatabase() {
 async function getOrCreateUser(keycloakSub, email, name) {
   const client = await pool.connect();
   try {
+    console.log("[DB] Querying for user with keycloak_sub:", keycloakSub);
     // Try to find existing user
     let result = await client.query(
       "SELECT * FROM users WHERE keycloak_sub = $1",
@@ -63,16 +64,23 @@ async function getOrCreateUser(keycloakSub, email, name) {
     );
 
     if (result.rows.length > 0) {
+      console.log(
+        "[DB] Found existing user - ID:",
+        result.rows[0].id,
+        "Email:",
+        result.rows[0].email
+      );
       return result.rows[0];
     }
 
     // Create new user
+    console.log("[DB] Creating new user - Email:", email, "Name:", name);
     result = await client.query(
       "INSERT INTO users (keycloak_sub, email, name) VALUES ($1, $2, $3) RETURNING *",
       [keycloakSub, email, name]
     );
 
-    console.log("Created new user:", result.rows[0]);
+    console.log("[DB] ✓ Created new user - ID:", result.rows[0].id);
     return result.rows[0];
   } finally {
     client.release();
@@ -88,6 +96,8 @@ async function saveJournalEntry(
 ) {
   const client = await pool.connect();
   try {
+    console.log("[DB] Saving journal entry for user ID:", userId);
+    console.log("[DB] Answers keys:", Object.keys(answers).join(", "));
     const result = await client.query(
       `INSERT INTO journal_entries (user_id, answers, one_line_summary, four_sentence_summary)
        VALUES ($1, $2, $3, $4)
@@ -99,6 +109,12 @@ async function saveJournalEntry(
          created_at = CURRENT_TIMESTAMP
        RETURNING *`,
       [userId, JSON.stringify(answers), oneLineSummary, fourSentenceSummary]
+    );
+    console.log(
+      "[DB] ✓ Journal entry saved - ID:",
+      result.rows[0].id,
+      "Date:",
+      result.rows[0].entry_date
     );
     return result.rows[0];
   } finally {

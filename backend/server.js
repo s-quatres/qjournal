@@ -51,6 +51,7 @@ app.post("/api/journal/analyze", authenticateToken, async (req, res) => {
     console.log("Processing answers:", Object.keys(answers));
 
     // Get or create user in database
+    console.log("[DB] Getting or creating user:", req.user.email);
     const user = await getOrCreateUser(
       req.user.sub,
       req.user.email,
@@ -59,7 +60,12 @@ app.post("/api/journal/analyze", authenticateToken, async (req, res) => {
       }`.trim()
     );
 
-    console.log("User ID:", user.id);
+    console.log(
+      "[DB] User retrieved/created - ID:",
+      user.id,
+      "Email:",
+      user.email
+    );
 
     // Dynamically build the entries section from whatever fields are present
     const entriesText = Object.entries(answers)
@@ -168,8 +174,15 @@ Keep your response personal, supportive, and concise (200-300 words). If any ent
     const fullSummary = fullCompletion.choices[0].message.content;
 
     console.log("Successfully generated summaries");
+    console.log("[DB] One-line summary:", oneLineSummary);
+    console.log(
+      "[DB] Four-sentence summary length:",
+      fourSentenceSummary.length,
+      "chars"
+    );
 
     // Save to database
+    console.log("[DB] Saving journal entry for user ID:", user.id);
     const entry = await saveJournalEntry(
       user.id,
       answers,
@@ -177,7 +190,12 @@ Keep your response personal, supportive, and concise (200-300 words). If any ent
       fourSentenceSummary
     );
 
-    console.log("Saved journal entry:", entry.id);
+    console.log(
+      "[DB] ✓ Saved journal entry - ID:",
+      entry.id,
+      "Date:",
+      entry.date
+    );
 
     res.json({ summary: fullSummary });
   } catch (error) {
