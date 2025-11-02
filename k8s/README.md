@@ -6,23 +6,53 @@
 - kubectl configured
 - NGINX Ingress Controller installed
 
-## Create Secret from .env file
+## Create Namespace and Secrets
 
-From the root of the project, create the Kubernetes secret:
+Create the namespace:
 
 ```bash
 kubectl create namespace qjournal
+```
+
+Create the application secrets from .env file:
+
+```bash
 kubectl create secret generic qjournal-secrets \
   --from-env-file=.env \
   --namespace=qjournal
 ```
 
-To verify the secret was created:
+Create the PostgreSQL password secret:
+
+```bash
+kubectl create secret generic postgres-secret \
+  --from-literal=password=YOUR_SECURE_PASSWORD \
+  --namespace=postgres
+```
+
+To verify secrets were created:
 
 ```bash
 kubectl get secret qjournal-secrets -n qjournal
-kubectl describe secret qjournal-secrets -n qjournal
+kubectl get secret postgres-secret -n postgres
 ```
+
+## Configure Database Connection
+
+Create the database configuration ConfigMap:
+
+```bash
+kubectl apply -f k8s/database-config.yaml
+```
+
+This configures the backend to connect to PostgreSQL in the `postgres` namespace. The default connection string points to `postgres-service.postgres.svc.cluster.local:5432`.
+
+To customize the database connection, edit `k8s/database-config.yaml` and update:
+
+- `DATABASE_HOST`: Database hostname (default: postgres-service.postgres.svc.cluster.local)
+- `DATABASE_PORT`: Database port (default: 5432)
+- `DATABASE_NAME`: Database name (default: qjournal)
+- `DATABASE_USER`: Database username (default: postgres)
 
 ## Deploy the Application
 
@@ -115,7 +145,7 @@ Update the `k8s/ingress.yaml` file with your actual domain:
 ```yaml
 spec:
   rules:
-  - host: qjournal.yourdomain.com  # Change this
+    - host: qjournal.yourdomain.com # Change this
 ```
 
 Then apply:

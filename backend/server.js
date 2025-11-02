@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const OpenAI = require("openai");
 const { authenticateToken } = require("./middleware/auth");
+const { initDatabase, getOrCreateUser, saveJournalEntry } = require("./db");
 
 dotenv.config();
 
@@ -11,6 +12,12 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+
+// Initialize database on startup
+initDatabase().catch((err) => {
+  console.error("Failed to initialize database:", err);
+  process.exit(1);
+});
 
 // Add logging middleware to see all incoming requests
 app.use((req, res, next) => {
@@ -43,6 +50,17 @@ app.post("/api/journal/analyze", authenticateToken, async (req, res) => {
 
     console.log("Processing answers:", Object.keys(answers));
 
+    // Get or create user in database
+    const user = await getOrCreateUser(
+      req.user.sub,
+      req.user.email,
+      `${req.user.given_name || req.user.firstName || ""} ${
+        req.user.family_name || req.user.lastName || ""
+      }`.trim()
+    );
+
+    console.log("User ID:", user.id);
+
     // Dynamically build the entries section from whatever fields are present
     const entriesText = Object.entries(answers)
       .filter(([_, value]) => value && value.trim().length > 0)
@@ -58,41 +76,110 @@ app.post("/api/journal/analyze", authenticateToken, async (req, res) => {
       })
       .join("\n");
 
-    const prompt = `You are a compassionate journaling assistant. A user has completed their daily journal with the following entries:
+    // Prompt for one-line summary
+    const oneLinePrompt = `Based on these journal entries, provide a single concise sentence (max 15 words) that captures the essence of the day:
+
+${entriesText}`;
+
+    // Prompt for four-sentence summary
+    const fourSentencePrompt = `You are a compassionate journaling assistant. A user has completed their daily journal with the following entries:
+
+${entriesText}
+
+Please provide exactly 4 sentences that:
+1. Summarize the key themes of their day
+2. Acknowledge their feelings and experiences
+3. Offer encouraging feedback
+4. Suggest a positive focus for tomorrow
+
+Keep each sentence meaningful but concise.`;
+
+    // Prompt for full analysis
+    const fullPrompt = `You are a compassionate journaling assistant. A user has completed their daily journal with the following entries:
 
 ${entriesText}
 
 Please provide:
-1. A one line description of the day.
-2. A brief, warm summary of their entries (2-3 sentences)
-4. Encouraging feedback and suggestions for growth
-5. A positive note to end on
-6. Steps for tomorrow based on the entries
+1. A brief, warm summary of their entries (2-3 sentences)
+2. Encouraging feedback and suggestions for growth
+3. A positive note to end on
+4. Steps for tomorrow based on the entries
 
 Keep your response personal, supportive, and concise (200-300 words). If any entry does not make sense, say so, and do not provide any feedback on that entry.`;
 
-    console.log("Making OpenAI API call...");
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a supportive and insightful journaling assistant who helps people reflect on their day with empathy and wisdom. Don't be too positive or generic; tailor your responses to the user's actual entries.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 500,
-    });
+    console.log("Making OpenAI API calls...");
 
-    const summary = completion.choices[0].message.content;
-    console.log("Successfully generated summary");
+    // Generate all three summaries in parallel
+    const [oneLineCompletion, fourSentenceCompletion, fullCompletion] =
+      await Promise.all([
+        openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a concise summarizer. Provide only the requested single sentence summary, nothing more.",
+            },
+            {
+              role: "user",
+              content: oneLinePrompt,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 50,
+        }),
+        openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You provide exactly 4 insightful sentences, no more, no less.",
+            },
+            {
+              role: "user",
+              content: fourSentencePrompt,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 150,
+        }),
+        openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a supportive and insightful journaling assistant who helps people reflect on their day with empathy and wisdom. Don't be too positive or generic; tailor your responses to the user's actual entries.",
+            },
+            {
+              role: "user",
+              content: fullPrompt,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
+      ]);
 
-    res.json({ summary });
+    const oneLineSummary = oneLineCompletion.choices[0].message.content.trim();
+    const fourSentenceSummary =
+      fourSentenceCompletion.choices[0].message.content.trim();
+    const fullSummary = fullCompletion.choices[0].message.content;
+
+    console.log("Successfully generated summaries");
+
+    // Save to database
+    const entry = await saveJournalEntry(
+      user.id,
+      answers,
+      oneLineSummary,
+      fourSentenceSummary
+    );
+
+    console.log("Saved journal entry:", entry.id);
+
+    res.json({ summary: fullSummary });
   } catch (error) {
     console.error("=== ERROR in journal analysis ===");
     console.error("Error type:", error.constructor.name);
