@@ -150,10 +150,140 @@ async function getUserEntries(userId, limit = 30) {
   }
 }
 
+// Get all tasks
+async function getAllTasks() {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM tasks ORDER BY created_at ASC`
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+// Create a new task
+async function createTask(name) {
+  const client = await pool.connect();
+  try {
+    console.log("[DB] Creating task:", name);
+    const result = await client.query(
+      `INSERT INTO tasks (name, enabled) VALUES ($1, true) RETURNING *`,
+      [name]
+    );
+    console.log("[DB] ✓ Task created - ID:", result.rows[0].id);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+// Update task (name or enabled status)
+async function updateTask(taskId, updates) {
+  const client = await pool.connect();
+  try {
+    const { name, enabled } = updates;
+    const setClauses = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (name !== undefined) {
+      setClauses.push(`name = $${paramIndex++}`);
+      values.push(name);
+    }
+    if (enabled !== undefined) {
+      setClauses.push(`enabled = $${paramIndex++}`);
+      values.push(enabled);
+    }
+
+    setClauses.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(taskId);
+
+    const result = await client.query(
+      `UPDATE tasks SET ${setClauses.join(", ")} WHERE id = $${paramIndex} RETURNING *`,
+      values
+    );
+    console.log("[DB] ✓ Task updated - ID:", taskId);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+// Delete a task
+async function deleteTask(taskId) {
+  const client = await pool.connect();
+  try {
+    console.log("[DB] Deleting task - ID:", taskId);
+    await client.query(`DELETE FROM tasks WHERE id = $1`, [taskId]);
+    console.log("[DB] ✓ Task deleted - ID:", taskId);
+  } finally {
+    client.release();
+  }
+}
+
+// Get task completions for a specific date
+async function getTaskCompletions(userId, date) {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT tc.* FROM task_completions tc
+       WHERE tc.user_id = $1 AND tc.completion_date = $2
+       ORDER BY tc.completed_at ASC`,
+      [userId, date]
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+// Mark task as completed for a user on a specific date
+async function completeTask(taskId, userId, completionDate) {
+  const client = await pool.connect();
+  try {
+    console.log("[DB] Completing task:", taskId, "for user:", userId, "on", completionDate);
+    const result = await client.query(
+      `INSERT INTO task_completions (task_id, user_id, completion_date)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (task_id, user_id, completion_date) DO NOTHING
+       RETURNING *`,
+      [taskId, userId, completionDate]
+    );
+    return result.rows[0] || { id: taskId, status: "already_completed" };
+  } finally {
+    client.release();
+  }
+}
+
+// Remove task completion for a user on a specific date
+async function uncompleteTask(taskId, userId, completionDate) {
+  const client = await pool.connect();
+  try {
+    console.log("[DB] Uncompleting task:", taskId, "for user:", userId, "on", completionDate);
+    await client.query(
+      `DELETE FROM task_completions 
+       WHERE task_id = $1 AND user_id = $2 AND completion_date = $3`,
+      [taskId, userId, completionDate]
+    );
+    console.log("[DB] ✓ Task completion removed");
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   pool,
   initDatabase,
   getOrCreateUser,
   saveJournalEntry,
   getUserEntries,
+  getAllTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  getTaskCompletions,
+  completeTask,
+  uncompleteTask,
 };

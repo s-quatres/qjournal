@@ -16,13 +16,18 @@ import {
   Sparkles,
   LogOut,
   LayoutDashboard,
+  CheckSquare,
 } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import Dashboard from "./Dashboard";
+import RoutineTracker from "./RoutineTracker";
+import RoutineManager from "./RoutineManager";
 
 const JournalApp = () => {
   const { user, logout, keycloak, loading: authLoading } = useAuth();
   const [showDashboard, setShowDashboard] = useState(true);
+  const [showRoutine, setShowRoutine] = useState(false);
+  const [showRoutineManager, setShowRoutineManager] = useState(false);
 
   // Define all questions in one place - add/remove/edit questions here
   const questions = [
@@ -151,14 +156,32 @@ const JournalApp = () => {
 
   // User header component
   const UserHeader = () => (
-    <div className="absolute top-4 right-4 flex items-center gap-4">
-      <span className="text-sm text-gray-700">
+    <div className="absolute top-4 right-4 flex items-center gap-2">
+      <span className="text-sm text-gray-700 mr-2">
         Hello, <span className="font-semibold">{user?.firstName}</span>
       </span>
+      {!showRoutine && !showRoutineManager && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setShowDashboard(false);
+            setShowRoutine(true);
+          }}
+          className="flex items-center gap-2"
+        >
+          <CheckSquare className="w-4 h-4" />
+          Routine
+        </Button>
+      )}
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setShowDashboard(!showDashboard)}
+        onClick={() => {
+          setShowDashboard(!showDashboard);
+          setShowRoutine(false);
+          setShowRoutineManager(false);
+        }}
         className="flex items-center gap-2"
       >
         {showDashboard ? (
@@ -185,6 +208,42 @@ const JournalApp = () => {
     </div>
   );
 
+  // Show routine tracker if requested
+  if (showRoutine) {
+    return (
+      <>
+        <UserHeader />
+        <RoutineTracker
+          token={keycloak.token}
+          onNavigateToDashboard={() => {
+            setShowRoutine(false);
+            setShowDashboard(true);
+          }}
+          onNavigateToManager={() => {
+            setShowRoutine(false);
+            setShowRoutineManager(true);
+          }}
+        />
+      </>
+    );
+  }
+
+  // Show routine manager if requested
+  if (showRoutineManager) {
+    return (
+      <>
+        <UserHeader />
+        <RoutineManager
+          token={keycloak.token}
+          onBack={() => {
+            setShowRoutineManager(false);
+            setShowDashboard(true);
+          }}
+        />
+      </>
+    );
+  }
+
   // Show dashboard if requested
   if (showDashboard) {
     return (
@@ -192,6 +251,10 @@ const JournalApp = () => {
         <UserHeader />
         <Dashboard
           onNavigateToJournal={() => setShowDashboard(false)}
+          onNavigateToRoutine={() => {
+            setShowDashboard(false);
+            setShowRoutine(true);
+          }}
           token={keycloak.token}
         />
       </>

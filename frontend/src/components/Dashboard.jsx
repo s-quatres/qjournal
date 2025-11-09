@@ -7,8 +7,9 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
+import { CheckSquare } from "lucide-react";
 
-const Dashboard = ({ onNavigateToJournal, token }) => {
+const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, token }) => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -93,12 +94,22 @@ const Dashboard = ({ onNavigateToJournal, token }) => {
               Track your contentment journey over time
             </p>
           </div>
-          <Button
-            onClick={onNavigateToJournal}
-            className="bg-indigo-600 hover:bg-indigo-700"
-          >
-            New Entry
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={onNavigateToRoutine}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <CheckSquare className="w-4 h-4" />
+              Daily Routine
+            </Button>
+            <Button
+              onClick={onNavigateToJournal}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              New Entry
+            </Button>
+          </div>
         </div>
 
         {/* Stats Card */}

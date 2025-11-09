@@ -8,6 +8,13 @@ const {
   getOrCreateUser,
   saveJournalEntry,
   getUserEntries,
+  getAllTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  getTaskCompletions,
+  completeTask,
+  uncompleteTask,
 } = require("./db");
 
 dotenv.config();
@@ -284,6 +291,159 @@ app.get("/api/journal/entries", authenticateToken, async (req, res) => {
     console.error("Error fetching entries:", error);
     res.status(500).json({
       error: "Failed to fetch entries",
+      details: error.message,
+    });
+  }
+});
+
+// Get all tasks
+app.get("/api/tasks", authenticateToken, async (req, res) => {
+  try {
+    console.log("[Tasks] Fetching all tasks");
+    const tasks = await getAllTasks();
+    res.json({ tasks });
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).json({
+      error: "Failed to fetch tasks",
+      details: error.message,
+    });
+  }
+});
+
+// Create a new task
+app.post("/api/tasks", authenticateToken, async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: "Task name is required" });
+    }
+
+    console.log("[Tasks] Creating task:", name);
+    const task = await createTask(name.trim());
+    res.status(201).json({ task });
+  } catch (error) {
+    console.error("Error creating task:", error);
+    res.status(500).json({
+      error: "Failed to create task",
+      details: error.message,
+    });
+  }
+});
+
+// Update a task (name or enabled status)
+app.patch("/api/tasks/:id", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, enabled } = req.body;
+
+    if (name === undefined && enabled === undefined) {
+      return res.status(400).json({ error: "At least one field must be updated" });
+    }
+
+    console.log("[Tasks] Updating task:", id, { name, enabled });
+    const task = await updateTask(id, { name, enabled });
+    res.json({ task });
+  } catch (error) {
+    console.error("Error updating task:", error);
+    res.status(500).json({
+      error: "Failed to update task",
+      details: error.message,
+    });
+  }
+});
+
+// Delete a task
+app.delete("/api/tasks/:id", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("[Tasks] Deleting task:", id);
+    await deleteTask(id);
+    res.json({ message: "Task deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    res.status(500).json({
+      error: "Failed to delete task",
+      details: error.message,
+    });
+  }
+});
+
+// Get task completions for a specific date
+app.get("/api/tasks/completions/:date", authenticateToken, async (req, res) => {
+  try {
+    const { date } = req.params;
+    
+    // Get or create user
+    const user = await getOrCreateUser(
+      req.user.id,
+      req.user.email,
+      req.user.name ||
+        `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim()
+    );
+
+    console.log("[Tasks] Fetching completions for date:", date, "user:", user.id);
+    const completions = await getTaskCompletions(user.id, date);
+    res.json({ completions, userId: user.id });
+  } catch (error) {
+    console.error("Error fetching completions:", error);
+    res.status(500).json({
+      error: "Failed to fetch completions",
+      details: error.message,
+    });
+  }
+});
+
+// Mark task as completed
+app.post("/api/tasks/completions", authenticateToken, async (req, res) => {
+  try {
+    const { taskId, completionDate } = req.body;
+
+    if (!taskId || !completionDate) {
+      return res.status(400).json({ error: "taskId and completionDate are required" });
+    }
+
+    // Get or create user
+    const user = await getOrCreateUser(
+      req.user.id,
+      req.user.email,
+      req.user.name ||
+        `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim()
+    );
+
+    console.log("[Tasks] Marking task as completed:", taskId, "date:", completionDate);
+    await completeTask(taskId, user.id, completionDate);
+    res.status(201).json({ message: "Task marked as completed" });
+  } catch (error) {
+    console.error("Error marking task as completed:", error);
+    res.status(500).json({
+      error: "Failed to mark task as completed",
+      details: error.message,
+    });
+  }
+});
+
+// Unmark task completion
+app.delete("/api/tasks/completions/:taskId/:date", authenticateToken, async (req, res) => {
+  try {
+    const { taskId, date } = req.params;
+
+    // Get or create user
+    const user = await getOrCreateUser(
+      req.user.id,
+      req.user.email,
+      req.user.name ||
+        `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim()
+    );
+
+    console.log("[Tasks] Unmarking task completion:", taskId, "date:", date);
+    await uncompleteTask(taskId, user.id, date);
+    res.json({ message: "Task completion removed" });
+  } catch (error) {
+    console.error("Error removing task completion:", error);
+    res.status(500).json({
+      error: "Failed to remove task completion",
       details: error.message,
     });
   }
