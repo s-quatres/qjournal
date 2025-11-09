@@ -13,6 +13,7 @@ import { ensureTokenValid } from "../AuthContext";
 
 const RoutineTracker = ({
   token,
+  keycloak,
   onNavigateToDashboard,
   onNavigateToManager,
 }) => {
@@ -35,7 +36,7 @@ const RoutineTracker = ({
       // Fetch all tasks
       const tasksResponse = await fetch("/api/tasks", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${keycloak.token}`,
           "Content-Type": "application/json",
         },
       });
@@ -53,7 +54,7 @@ const RoutineTracker = ({
         `/api/tasks/completions/${today}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${keycloak.token}`,
             "Content-Type": "application/json",
           },
         }
@@ -89,7 +90,7 @@ const RoutineTracker = ({
           {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${keycloak.token}`,
               "Content-Type": "application/json",
             },
           }
@@ -105,7 +106,7 @@ const RoutineTracker = ({
         const response = await fetch("/api/tasks/completions", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${keycloak.token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ taskId, completionDate: today }),

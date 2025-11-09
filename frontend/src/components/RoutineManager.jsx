@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { Trash2, Edit2, CheckCircle2, Circle } from "lucide-react";
 import { ensureTokenValid } from "../AuthContext";
 
-const RoutineManager = ({ token, onBack }) => {
+const RoutineManager = ({ keycloak, onBack }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,7 +31,7 @@ const RoutineManager = ({ token, onBack }) => {
       await ensureTokenValid();
       const response = await fetch("/api/tasks", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${keycloak.token}`,
           "Content-Type": "application/json",
         },
       });
@@ -58,7 +58,7 @@ const RoutineManager = ({ token, onBack }) => {
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${keycloak.token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ name: newTaskName }),
@@ -83,7 +83,7 @@ const RoutineManager = ({ token, onBack }) => {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${keycloak.token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(updates),
@@ -111,7 +111,7 @@ const RoutineManager = ({ token, onBack }) => {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${keycloak.token}`,
           "Content-Type": "application/json",
         },
       });

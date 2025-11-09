@@ -10,7 +10,7 @@ import { Button } from "./ui/button";
 import { CheckSquare } from "lucide-react";
 import { ensureTokenValid } from "../AuthContext";
 
-const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, token }) => {
+const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, keycloak }) => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,7 +27,7 @@ const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, token }) => {
 
       const response = await fetch("/api/journal/entries", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${keycloak.token}`,
           "Content-Type": "application/json",
         },
       });

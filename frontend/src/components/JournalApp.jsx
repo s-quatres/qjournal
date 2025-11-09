@@ -215,7 +215,7 @@ const JournalApp = () => {
       <>
         <UserHeader />
         <RoutineTracker
-          token={keycloak.token}
+          keycloak={keycloak}
           onNavigateToDashboard={() => {
             setShowRoutine(false);
             setShowDashboard(true);
@@ -235,7 +235,7 @@ const JournalApp = () => {
       <>
         <UserHeader />
         <RoutineManager
-          token={keycloak.token}
+          keycloak={keycloak}
           onBack={() => {
             setShowRoutineManager(false);
             setShowDashboard(true);
@@ -256,7 +256,7 @@ const JournalApp = () => {
             setShowDashboard(false);
             setShowRoutine(true);
           }}
-          token={keycloak.token}
+          keycloak={keycloak}
         />
       </>
     );
