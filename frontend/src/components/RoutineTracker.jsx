@@ -9,15 +9,13 @@ import {
 import { Button } from "./ui/button";
 import { Alert, AlertDescription } from "./ui/alert";
 import { CheckCircle2, Circle } from "lucide-react";
-
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Alert, AlertDescription } from "./ui/alert";
-import { CheckCircle2, Circle } from "lucide-react";
 import { ensureTokenValid } from "../AuthContext";
 
-const RoutineTracker = ({ token, onNavigateToDashboard, onNavigateToManager }) => {
+const RoutineTracker = ({
+  token,
+  onNavigateToDashboard,
+  onNavigateToManager,
+}) => {
   const [tasks, setTasks] = useState([]);
   const [completions, setCompletions] = useState([]);
   const [loading, setLoading] = useState(true);
