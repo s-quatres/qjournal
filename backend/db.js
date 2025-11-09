@@ -32,15 +32,45 @@ async function initDatabase() {
         answers JSONB NOT NULL,
         one_line_summary TEXT,
         four_sentence_summary TEXT,
+        contentment_score INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_id, entry_date)
       )
+    `);
+
+    // Add contentment_score column if it doesn't exist
+    await client.query(`
+      ALTER TABLE journal_entries 
+      ADD COLUMN IF NOT EXISTS contentment_score INTEGER
     `);
 
     // Create index on user_id and entry_date for faster queries
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_journal_entries_user_date 
       ON journal_entries(user_id, entry_date DESC)
+    `);
+
+    // Create tasks table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        enabled BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create task_completions table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS task_completions (
+        id SERIAL PRIMARY KEY,
+        task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        completion_date DATE NOT NULL,
+        completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(task_id, user_id, completion_date)
+      )
     `);
 
     console.log("Database schema initialized successfully");
@@ -241,6 +271,23 @@ async function getTaskCompletions(userId, date) {
   }
 }
 
+// Get task completion counts for multiple dates
+async function getTaskCompletionCounts(userId, dates) {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT completion_date, COUNT(*) as count 
+       FROM task_completions 
+       WHERE user_id = $1 AND completion_date = ANY($2)
+       GROUP BY completion_date`,
+      [userId, dates]
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
 // Mark task as completed for a user on a specific date
 async function completeTask(taskId, userId, completionDate) {
   const client = await pool.connect();
@@ -300,6 +347,7 @@ module.exports = {
   updateTask,
   deleteTask,
   getTaskCompletions,
+  getTaskCompletionCounts,
   completeTask,
   uncompleteTask,
 };

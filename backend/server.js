@@ -13,6 +13,7 @@ const {
   updateTask,
   deleteTask,
   getTaskCompletions,
+  getTaskCompletionCounts,
   completeTask,
   uncompleteTask,
 } = require("./db");
@@ -278,12 +279,25 @@ app.get("/api/journal/entries", authenticateToken, async (req, res) => {
 
     console.log("[DB] Retrieved", entries.length, "entries");
 
-    // Format response to only include necessary fields
+    // Get task completion counts for all entry dates
+    const entryDates = entries.map((e) => e.entry_date);
+    const completionCounts = entryDates.length > 0 
+      ? await getTaskCompletionCounts(user.id, entryDates)
+      : [];
+
+    // Create a map for easy lookup
+    const completionMap = {};
+    completionCounts.forEach((row) => {
+      completionMap[row.completion_date] = row.count;
+    });
+
+    // Format response to include task completion counts
     const formattedEntries = entries.map((entry) => ({
       id: entry.id,
       date: entry.entry_date,
       oneLineSummary: entry.one_line_summary,
       contentmentScore: entry.contentment_score,
+      tasksCompleted: completionMap[entry.entry_date] || 0,
     }));
 
     res.json({ entries: formattedEntries });

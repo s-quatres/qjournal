@@ -7,39 +7,81 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
-import { CheckSquare } from "lucide-react";
+import { CheckSquare, AlertCircle } from "lucide-react";
 import { ensureTokenValid } from "../AuthContext";
 
 const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, keycloak }) => {
   const [entries, setEntries] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [completions, setCompletions] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchEntries();
+    fetchData();
   }, []);
 
-  const fetchEntries = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       await ensureTokenValid();
 
-      const response = await fetch("/api/journal/entries", {
+      // Fetch journal entries
+      const entriesResponse = await fetch("/api/journal/entries", {
         headers: {
           Authorization: `Bearer ${keycloak.token}`,
           "Content-Type": "application/json",
         },
       });
 
-      if (!response.ok) {
+      if (!entriesResponse.ok) {
         throw new Error("Failed to fetch entries");
       }
 
-      const data = await response.json();
-      setEntries(data.entries);
+      const entriesData = await entriesResponse.json();
+      setEntries(entriesData.entries);
+
+      // Fetch all tasks
+      const tasksResponse = await fetch("/api/tasks", {
+        headers: {
+          Authorization: `Bearer ${keycloak.token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!tasksResponse.ok) {
+        throw new Error("Failed to fetch tasks");
+      }
+
+      const tasksData = await tasksResponse.json();
+      const enabledTasks = tasksData.tasks.filter((t) => t.enabled);
+      setTasks(enabledTasks);
+
+      // Fetch today's completions
+      const today = new Date().toISOString().split("T")[0];
+      const completionsResponse = await fetch(
+        `/api/tasks/completions/${today}`,
+        {
+          headers: {
+            Authorization: `Bearer ${keycloak.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!completionsResponse.ok) {
+        throw new Error("Failed to fetch completions");
+      }
+
+      const completionsData = await completionsResponse.json();
+      const completionCount = completionsData.completions.length;
+      setCompletions({
+        today: completionCount,
+        total: enabledTasks.length,
+      });
     } catch (err) {
-      console.error("Error fetching entries:", err);
+      console.error("Error fetching data:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -72,6 +114,15 @@ const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, keycloak }) => {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const getTodayDate = () => {
+    return new Date().toISOString().split("T")[0];
+  };
+
+  const hasTodayEntry = () => {
+    const today = getTodayDate();
+    return entries.some((entry) => entry.date.split("T")[0] === today);
   };
 
   const averageContentment =
@@ -155,56 +206,99 @@ const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, keycloak }) => {
               <div className="text-center py-8 text-red-600">
                 Error: {error}
               </div>
-            ) : entries.length === 0 ? (
-              <div className="text-center py-8 text-gray-600">
-                <p className="mb-4">
-                  No entries yet. Start your journaling journey!
-                </p>
-                <Button
-                  onClick={onNavigateToJournal}
-                  className="bg-indigo-600 hover:bg-indigo-700"
-                >
-                  Create First Entry
-                </Button>
-              </div>
             ) : (
               <div className="space-y-4">
-                {entries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="flex items-start gap-4 p-4 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all"
-                  >
+                {/* Journal Pending Tile - show if no entry for today */}
+                {!hasTodayEntry() && (
+                  <div className="flex items-start gap-4 p-4 rounded-lg border border-amber-200 bg-amber-50 hover:border-amber-300 transition-all">
                     <div className="flex-shrink-0">
-                      <div
-                        className={`w-16 h-16 rounded-lg ${getContentmentColor(
-                          entry.contentmentScore
-                        )} flex flex-col items-center justify-center text-white shadow-lg`}
-                      >
-                        <div className="text-2xl font-bold">
-                          {entry.contentmentScore ?? "?"}
-                        </div>
-                        <div className="text-xs opacity-90">/ 10</div>
+                      <div className="w-16 h-16 rounded-lg bg-amber-400 flex flex-col items-center justify-center text-white shadow-lg">
+                        <AlertCircle className="w-8 h-8" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="font-semibold text-gray-900">
-                          {formatDate(entry.date)}
-                        </p>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getContentmentColor(
-                            entry.contentmentScore
-                          )}`}
-                        >
-                          {getContentmentLabel(entry.contentmentScore)}
+                        <p className="font-semibold text-gray-900">Today</p>
+                        <span className="px-2 py-1 rounded-full text-xs font-medium text-white bg-amber-500">
+                          Journal Pending
                         </span>
                       </div>
-                      <p className="text-gray-700 leading-relaxed">
-                        {entry.oneLineSummary}
+                      <p className="text-gray-700 leading-relaxed mb-3">
+                        No entry yet for today. Take a moment to reflect on your day!
                       </p>
+                      <div className="flex items-center gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-600">Tasks Completed</p>
+                          <p className="text-lg font-bold text-amber-600">
+                            {completions.today ?? 0} / {completions.total ?? 0}
+                          </p>
+                        </div>
+                        <Button
+                          onClick={onNavigateToJournal}
+                          className="bg-amber-500 hover:bg-amber-600 ml-auto"
+                        >
+                          Add Entry
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                ))}
+                )}
+
+                {/* Past Entries */}
+                {entries.length === 0 && hasTodayEntry() ? (
+                  <div className="text-center py-8 text-gray-600">
+                    <p className="mb-4">
+                      No entries yet. Start your journaling journey!
+                    </p>
+                    <Button
+                      onClick={onNavigateToJournal}
+                      className="bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      Create First Entry
+                    </Button>
+                  </div>
+                ) : (
+                  entries.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="flex items-start gap-4 p-4 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all"
+                    >
+                      <div className="flex-shrink-0">
+                        <div
+                          className={`w-16 h-16 rounded-lg ${getContentmentColor(
+                            entry.contentmentScore
+                          )} flex flex-col items-center justify-center text-white shadow-lg`}
+                        >
+                          <div className="text-2xl font-bold">
+                            {entry.contentmentScore ?? "?"}
+                          </div>
+                          <div className="text-xs opacity-90">/ 10</div>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-gray-900">
+                            {formatDate(entry.date)}
+                          </p>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getContentmentColor(
+                              entry.contentmentScore
+                            )}`}
+                          >
+                            {getContentmentLabel(entry.contentmentScore)}
+                          </span>
+                        </div>
+                        <p className="text-gray-700 leading-relaxed mb-2">
+                          {entry.oneLineSummary}
+                        </p>
+                        <div className="text-sm text-gray-600">
+                          <CheckSquare className="inline w-4 h-4 mr-1" />
+                          Tasks completed that day: {entry.tasksCompleted ?? 0} / {completions.total ?? 0}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             )}
           </CardContent>
