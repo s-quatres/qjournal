@@ -8,6 +8,7 @@ import {
 } from "./ui/card";
 import { Button } from "./ui/button";
 import { CheckSquare } from "lucide-react";
+import { ensureTokenValid } from "../AuthContext";
 
 const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, token }) => {
   const [entries, setEntries] = useState([]);
@@ -22,6 +23,7 @@ const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, token }) => {
     try {
       setLoading(true);
       setError(null);
+      await ensureTokenValid();
 
       const response = await fetch("/api/journal/entries", {
         headers: {

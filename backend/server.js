@@ -339,7 +339,9 @@ app.patch("/api/tasks/:id", authenticateToken, async (req, res) => {
     const { name, enabled } = req.body;
 
     if (name === undefined && enabled === undefined) {
-      return res.status(400).json({ error: "At least one field must be updated" });
+      return res
+        .status(400)
+        .json({ error: "At least one field must be updated" });
     }
 
     console.log("[Tasks] Updating task:", id, { name, enabled });
@@ -374,7 +376,7 @@ app.delete("/api/tasks/:id", authenticateToken, async (req, res) => {
 app.get("/api/tasks/completions/:date", authenticateToken, async (req, res) => {
   try {
     const { date } = req.params;
-    
+
     // Get or create user
     const user = await getOrCreateUser(
       req.user.id,
@@ -383,7 +385,12 @@ app.get("/api/tasks/completions/:date", authenticateToken, async (req, res) => {
         `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim()
     );
 
-    console.log("[Tasks] Fetching completions for date:", date, "user:", user.id);
+    console.log(
+      "[Tasks] Fetching completions for date:",
+      date,
+      "user:",
+      user.id
+    );
     const completions = await getTaskCompletions(user.id, date);
     res.json({ completions, userId: user.id });
   } catch (error) {
@@ -401,7 +408,9 @@ app.post("/api/tasks/completions", authenticateToken, async (req, res) => {
     const { taskId, completionDate } = req.body;
 
     if (!taskId || !completionDate) {
-      return res.status(400).json({ error: "taskId and completionDate are required" });
+      return res
+        .status(400)
+        .json({ error: "taskId and completionDate are required" });
     }
 
     // Get or create user
@@ -412,7 +421,12 @@ app.post("/api/tasks/completions", authenticateToken, async (req, res) => {
         `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim()
     );
 
-    console.log("[Tasks] Marking task as completed:", taskId, "date:", completionDate);
+    console.log(
+      "[Tasks] Marking task as completed:",
+      taskId,
+      "date:",
+      completionDate
+    );
     await completeTask(taskId, user.id, completionDate);
     res.status(201).json({ message: "Task marked as completed" });
   } catch (error) {
@@ -425,29 +439,33 @@ app.post("/api/tasks/completions", authenticateToken, async (req, res) => {
 });
 
 // Unmark task completion
-app.delete("/api/tasks/completions/:taskId/:date", authenticateToken, async (req, res) => {
-  try {
-    const { taskId, date } = req.params;
+app.delete(
+  "/api/tasks/completions/:taskId/:date",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { taskId, date } = req.params;
 
-    // Get or create user
-    const user = await getOrCreateUser(
-      req.user.id,
-      req.user.email,
-      req.user.name ||
-        `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim()
-    );
+      // Get or create user
+      const user = await getOrCreateUser(
+        req.user.id,
+        req.user.email,
+        req.user.name ||
+          `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim()
+      );
 
-    console.log("[Tasks] Unmarking task completion:", taskId, "date:", date);
-    await uncompleteTask(taskId, user.id, date);
-    res.json({ message: "Task completion removed" });
-  } catch (error) {
-    console.error("Error removing task completion:", error);
-    res.status(500).json({
-      error: "Failed to remove task completion",
-      details: error.message,
-    });
+      console.log("[Tasks] Unmarking task completion:", taskId, "date:", date);
+      await uncompleteTask(taskId, user.id, date);
+      res.json({ message: "Task completion removed" });
+    } catch (error) {
+      console.error("Error removing task completion:", error);
+      res.status(500).json({
+        error: "Failed to remove task completion",
+        details: error.message,
+      });
+    }
   }
-});
+);
 
 app.get("/health", (req, res) => {
   res.json({ status: "healthy" });

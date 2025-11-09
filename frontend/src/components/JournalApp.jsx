@@ -18,7 +18,7 @@ import {
   LayoutDashboard,
   CheckSquare,
 } from "lucide-react";
-import { useAuth } from "../AuthContext";
+import { useAuth, ensureTokenValid } from "../AuthContext";
 import Dashboard from "./Dashboard";
 import RoutineTracker from "./RoutineTracker";
 import RoutineManager from "./RoutineManager";
@@ -102,6 +102,7 @@ const JournalApp = () => {
       console.log("[Frontend] Submitting journal answers:", answers);
       console.log("[Frontend] User:", user?.email);
 
+      await ensureTokenValid();
       const response = await fetch("/api/journal/analyze", {
         method: "POST",
         headers: {

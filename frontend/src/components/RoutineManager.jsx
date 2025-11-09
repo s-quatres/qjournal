@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Trash2, Edit2, CheckCircle2, Circle } from "lucide-react";
+import { ensureTokenValid } from "../AuthContext";
 
 const RoutineManager = ({ token, onBack }) => {
   const [tasks, setTasks] = useState([]);
@@ -21,6 +28,7 @@ const RoutineManager = ({ token, onBack }) => {
     try {
       setLoading(true);
       setError(null);
+      await ensureTokenValid();
       const response = await fetch("/api/tasks", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -46,6 +54,7 @@ const RoutineManager = ({ token, onBack }) => {
     if (!newTaskName.trim()) return;
 
     try {
+      await ensureTokenValid();
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: {
@@ -70,6 +79,7 @@ const RoutineManager = ({ token, onBack }) => {
 
   const handleUpdateTask = async (taskId, updates) => {
     try {
+      await ensureTokenValid();
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: {
@@ -97,6 +107,7 @@ const RoutineManager = ({ token, onBack }) => {
     if (!confirm("Are you sure you want to delete this task?")) return;
 
     try {
+      await ensureTokenValid();
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: "DELETE",
         headers: {
@@ -141,7 +152,9 @@ const RoutineManager = ({ token, onBack }) => {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Routine Manager</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Routine Manager
+            </h1>
             <p className="text-gray-600">Create and manage your daily tasks</p>
           </div>
           <Button onClick={onBack} variant="outline">
@@ -187,7 +200,9 @@ const RoutineManager = ({ token, onBack }) => {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8 text-gray-600">Loading tasks...</div>
+              <div className="text-center py-8 text-gray-600">
+                Loading tasks...
+              </div>
             ) : tasks.length === 0 ? (
               <div className="text-center py-8 text-gray-600">
                 <p>No tasks yet. Create your first task above!</p>
@@ -205,7 +220,9 @@ const RoutineManager = ({ token, onBack }) => {
                   >
                     <button
                       onClick={() => handleToggleEnabled(task)}
-                      className={`flex-shrink-0 ${task.enabled ? "text-green-500" : "text-gray-300"}`}
+                      className={`flex-shrink-0 ${
+                        task.enabled ? "text-green-500" : "text-gray-300"
+                      }`}
                     >
                       {task.enabled ? (
                         <CheckCircle2 className="w-6 h-6" />
@@ -239,7 +256,13 @@ const RoutineManager = ({ token, onBack }) => {
                           </Button>
                         </div>
                       ) : (
-                        <p className={`text-lg ${task.enabled ? "text-gray-900" : "text-gray-500 line-through"}`}>
+                        <p
+                          className={`text-lg ${
+                            task.enabled
+                              ? "text-gray-900"
+                              : "text-gray-500 line-through"
+                          }`}
+                        >
                           {task.name}
                         </p>
                       )}

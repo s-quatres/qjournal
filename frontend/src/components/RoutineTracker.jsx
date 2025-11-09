@@ -1,8 +1,21 @@
 import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Button } from "./ui/button";
+import { Alert, AlertDescription } from "./ui/alert";
+import { CheckCircle2, Circle } from "lucide-react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Alert, AlertDescription } from "./ui/alert";
 import { CheckCircle2, Circle } from "lucide-react";
+import { ensureTokenValid } from "../AuthContext";
 
 const RoutineTracker = ({ token, onNavigateToDashboard, onNavigateToManager }) => {
   const [tasks, setTasks] = useState([]);
@@ -19,6 +32,7 @@ const RoutineTracker = ({ token, onNavigateToDashboard, onNavigateToManager }) =
     try {
       setLoading(true);
       setError(null);
+      await ensureTokenValid();
 
       // Fetch all tasks
       const tasksResponse = await fetch("/api/tasks", {
@@ -37,12 +51,15 @@ const RoutineTracker = ({ token, onNavigateToDashboard, onNavigateToManager }) =
       setTasks(enabledTasks);
 
       // Fetch completions for today
-      const completionsResponse = await fetch(`/api/tasks/completions/${today}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const completionsResponse = await fetch(
+        `/api/tasks/completions/${today}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!completionsResponse.ok) {
         throw new Error("Failed to fetch completions");
@@ -66,15 +83,19 @@ const RoutineTracker = ({ token, onNavigateToDashboard, onNavigateToManager }) =
     const isCompleted = isTaskCompleted(taskId);
 
     try {
+      await ensureTokenValid();
       if (isCompleted) {
         // Remove completion
-        const response = await fetch(`/api/tasks/completions/${taskId}/${today}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `/api/tasks/completions/${taskId}/${today}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to remove completion");
@@ -96,7 +117,10 @@ const RoutineTracker = ({ token, onNavigateToDashboard, onNavigateToManager }) =
           throw new Error("Failed to mark task as completed");
         }
 
-        setCompletions([...completions, { task_id: taskId, completion_date: today }]);
+        setCompletions([
+          ...completions,
+          { task_id: taskId, completion_date: today },
+        ]);
       }
     } catch (err) {
       console.error("Error toggling completion:", err);
@@ -124,7 +148,9 @@ const RoutineTracker = ({ token, onNavigateToDashboard, onNavigateToManager }) =
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Daily Routine</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Daily Routine
+            </h1>
             <p className="text-gray-600">{formatDate(today)}</p>
           </div>
           <div className="flex gap-2">
@@ -151,7 +177,9 @@ const RoutineTracker = ({ token, onNavigateToDashboard, onNavigateToManager }) =
           <CardContent className="pt-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-indigo-100 text-sm font-medium">Completed Today</p>
+                <p className="text-indigo-100 text-sm font-medium">
+                  Completed Today
+                </p>
                 <p className="text-5xl font-bold mt-2">
                   {completionCount}/{totalCount}
                 </p>
@@ -176,11 +204,15 @@ const RoutineTracker = ({ token, onNavigateToDashboard, onNavigateToManager }) =
         <Card className="bg-white/80 backdrop-blur">
           <CardHeader>
             <CardTitle>Today's Tasks</CardTitle>
-            <CardDescription>Check off each task as you complete it</CardDescription>
+            <CardDescription>
+              Check off each task as you complete it
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8 text-gray-600">Loading tasks...</div>
+              <div className="text-center py-8 text-gray-600">
+                Loading tasks...
+              </div>
             ) : tasks.length === 0 ? (
               <div className="text-center py-12 text-gray-600">
                 <p className="mb-4">No tasks configured yet.</p>
@@ -240,7 +272,9 @@ const RoutineTracker = ({ token, onNavigateToDashboard, onNavigateToManager }) =
         {/* Completion message */}
         {completionCount === totalCount && totalCount > 0 && (
           <div className="mt-6 p-6 bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300 rounded-lg text-center">
-            <p className="text-xl font-bold text-green-800">🎉 Amazing! You've completed all your tasks for today!</p>
+            <p className="text-xl font-bold text-green-800">
+              🎉 Amazing! You've completed all your tasks for today!
+            </p>
           </div>
         )}
       </div>

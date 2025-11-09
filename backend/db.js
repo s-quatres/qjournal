@@ -201,7 +201,9 @@ async function updateTask(taskId, updates) {
     values.push(taskId);
 
     const result = await client.query(
-      `UPDATE tasks SET ${setClauses.join(", ")} WHERE id = $${paramIndex} RETURNING *`,
+      `UPDATE tasks SET ${setClauses.join(
+        ", "
+      )} WHERE id = $${paramIndex} RETURNING *`,
       values
     );
     console.log("[DB] ✓ Task updated - ID:", taskId);
@@ -243,7 +245,14 @@ async function getTaskCompletions(userId, date) {
 async function completeTask(taskId, userId, completionDate) {
   const client = await pool.connect();
   try {
-    console.log("[DB] Completing task:", taskId, "for user:", userId, "on", completionDate);
+    console.log(
+      "[DB] Completing task:",
+      taskId,
+      "for user:",
+      userId,
+      "on",
+      completionDate
+    );
     const result = await client.query(
       `INSERT INTO task_completions (task_id, user_id, completion_date)
        VALUES ($1, $2, $3)
@@ -261,7 +270,14 @@ async function completeTask(taskId, userId, completionDate) {
 async function uncompleteTask(taskId, userId, completionDate) {
   const client = await pool.connect();
   try {
-    console.log("[DB] Uncompleting task:", taskId, "for user:", userId, "on", completionDate);
+    console.log(
+      "[DB] Uncompleting task:",
+      taskId,
+      "for user:",
+      userId,
+      "on",
+      completionDate
+    );
     await client.query(
       `DELETE FROM task_completions 
        WHERE task_id = $1 AND user_id = $2 AND completion_date = $3`,

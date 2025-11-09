@@ -11,6 +11,21 @@ export const useAuth = () => {
   return context;
 };
 
+// Utility function to ensure token is valid before making API calls
+export const ensureTokenValid = async () => {
+  if (keycloak.token) {
+    try {
+      const refreshed = await keycloak.updateToken(30); // Refresh if token expires in less than 30 seconds
+      if (refreshed) {
+        console.log("Token proactively refreshed");
+      }
+    } catch (error) {
+      console.error("Failed to refresh token:", error);
+      throw new Error("Token refresh failed");
+    }
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [initialized, setInitialized] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
