@@ -148,14 +148,14 @@ const RoutineManager = ({ keycloak, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900 p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-50 mb-2">
               Routine Manager
             </h1>
-            <p className="text-gray-600">Create and manage your daily tasks</p>
+            <p className="text-gray-600 dark:text-gray-400">Create and manage your daily tasks</p>
           </div>
           <Button onClick={onBack} variant="outline">
             Back to Dashboard

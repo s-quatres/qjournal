@@ -143,14 +143,14 @@ const RoutineTracker = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900 p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-50 mb-2">
               Daily Routine
             </h1>
-            <p className="text-gray-600">{formatDate(today)}</p>
+            <p className="text-gray-600 dark:text-gray-400">{formatDate(today)}</p>
           </div>
           <div className="flex gap-2">
             <Button onClick={onNavigateToManager} variant="outline">
@@ -172,7 +172,7 @@ const RoutineTracker = ({
         )}
 
         {/* Progress Card */}
-        <Card className="mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg">
+        <Card className="mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-900 dark:to-purple-900 text-white shadow-lg">
           <CardContent className="pt-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -270,8 +270,8 @@ const RoutineTracker = ({
 
         {/* Completion message */}
         {completionCount === totalCount && totalCount > 0 && (
-          <div className="mt-6 p-6 bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300 rounded-lg text-center">
-            <p className="text-xl font-bold text-green-800">
+          <div className="mt-6 p-6 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 border border-green-300 dark:border-green-700 rounded-lg text-center">
+            <p className="text-xl font-bold text-green-800 dark:text-green-200">
               🎉 Amazing! You've completed all your tasks for today!
             </p>
           </div>

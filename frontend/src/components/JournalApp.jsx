@@ -160,8 +160,8 @@ const JournalApp = () => {
   // Loading state while auth is initializing
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-purple-600 dark:text-purple-400 animate-spin" />
       </div>
     );
   }
@@ -287,12 +287,12 @@ const JournalApp = () => {
 
   if (currentStep === questions.length && summary) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4 flex items-center justify-center relative">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-950 dark:to-gray-900 p-4 flex items-center justify-center relative">
         <UserHeader />
         <Card className="w-full max-w-2xl shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <Sparkles className="w-12 h-12 text-purple-600" />
+              <Sparkles className="w-12 h-12 text-purple-600 dark:text-purple-400" />
             </div>
             <CardTitle className="text-3xl">Your Journal Summary</CardTitle>
             <CardDescription>
@@ -300,8 +300,8 @@ const JournalApp = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-6 rounded-lg">
-              <div className="prose max-w-none whitespace-pre-wrap">
+            <div className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/40 dark:to-blue-900/40 p-6 rounded-lg dark:text-gray-50">
+              <div className="prose max-w-none whitespace-pre-wrap dark:prose-invert">
                 {summary}
               </div>
             </div>
@@ -324,13 +324,13 @@ const JournalApp = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4 flex items-center justify-center relative">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-950 dark:to-gray-900 p-4 flex items-center justify-center relative">
       <UserHeader />
       <Card className="w-full max-w-2xl shadow-xl">
         <CardHeader>
           <div className="flex items-center justify-between mb-2">
-            <BookOpen className="w-8 h-8 text-purple-600" />
-            <span className="text-sm text-gray-500">
+            <BookOpen className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               Question {currentStep + 1} of {questions.length}
             </span>
           </div>
