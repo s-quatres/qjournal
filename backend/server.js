@@ -54,7 +54,7 @@ app.post("/api/journal/analyze", authenticateToken, async (req, res) => {
   console.log("Received request body:", req.body);
 
   try {
-    const { answers } = req.body;
+    const { answers, entryDate } = req.body;
 
     if (!answers) {
       console.log("ERROR: Missing answers in request body");
@@ -62,6 +62,9 @@ app.post("/api/journal/analyze", authenticateToken, async (req, res) => {
     }
 
     console.log("Processing answers:", Object.keys(answers));
+    if (entryDate) {
+      console.log("Entry date specified:", entryDate);
+    }
 
     // Get or create user in database
     console.log("[DB] Getting or creating user:", req.user.email);
@@ -239,7 +242,8 @@ Respond with ONLY a single number from 0 to 10, nothing else.`;
       answers,
       oneLineSummary,
       fourSentenceSummary,
-      contentmentScore
+      contentmentScore,
+      entryDate || null
     );
 
     console.log(
@@ -281,9 +285,10 @@ app.get("/api/journal/entries", authenticateToken, async (req, res) => {
 
     // Get task completion counts for all entry dates
     const entryDates = entries.map((e) => e.entry_date);
-    const completionCounts = entryDates.length > 0 
-      ? await getTaskCompletionCounts(user.id, entryDates)
-      : [];
+    const completionCounts =
+      entryDates.length > 0
+        ? await getTaskCompletionCounts(user.id, entryDates)
+        : [];
 
     // Create a map for easy lookup
     const completionMap = {};

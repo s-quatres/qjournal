@@ -17,6 +17,7 @@ import {
   LogOut,
   LayoutDashboard,
   CheckSquare,
+  Calendar,
 } from "lucide-react";
 import { useAuth, ensureTokenValid } from "../AuthContext";
 import Dashboard from "./Dashboard";
@@ -28,6 +29,7 @@ const JournalApp = () => {
   const [showDashboard, setShowDashboard] = useState(true);
   const [showRoutine, setShowRoutine] = useState(false);
   const [showRoutineManager, setShowRoutineManager] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // Define all questions in one place - add/remove/edit questions here
   const questions = [
@@ -101,6 +103,7 @@ const JournalApp = () => {
     try {
       console.log("[Frontend] Submitting journal answers:", answers);
       console.log("[Frontend] User:", user?.email);
+      console.log("[Frontend] Entry date:", selectedDate || "today");
 
       await ensureTokenValid();
       const response = await fetch("/api/journal/analyze", {
@@ -109,7 +112,10 @@ const JournalApp = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${keycloak.token}`,
         },
-        body: JSON.stringify({ answers }),
+        body: JSON.stringify({ 
+          answers,
+          entryDate: selectedDate || new Date().toISOString().split("T")[0],
+        }),
       });
 
       console.log("[Frontend] Response status:", response.status);
@@ -140,6 +146,7 @@ const JournalApp = () => {
     setAnswers(initializeAnswers());
     setSummary(null);
     setError(null);
+    setSelectedDate(null);
   };
 
   const currentQuestion = questions[currentStep];
@@ -252,6 +259,10 @@ const JournalApp = () => {
         <UserHeader />
         <Dashboard
           onNavigateToJournal={() => setShowDashboard(false)}
+          onNavigateToJournalForDate={(date) => {
+            setSelectedDate(date);
+            setShowDashboard(false);
+          }}
           onNavigateToRoutine={() => {
             setShowDashboard(false);
             setShowRoutine(true);

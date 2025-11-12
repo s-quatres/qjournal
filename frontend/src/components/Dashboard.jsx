@@ -7,15 +7,17 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
-import { CheckSquare, AlertCircle } from "lucide-react";
+import { CheckSquare, AlertCircle, Calendar } from "lucide-react";
 import { ensureTokenValid } from "../AuthContext";
 
-const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, keycloak }) => {
+const Dashboard = ({ onNavigateToJournal, onNavigateToJournalForDate, onNavigateToRoutine, keycloak }) => {
   const [entries, setEntries] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [completions, setCompletions] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pickedDate, setPickedDate] = useState(new Date().toISOString().split("T")[0]);
 
   useEffect(() => {
     fetchData();
@@ -157,6 +159,14 @@ const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, keycloak }) => {
               Daily Routine
             </Button>
             <Button
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Calendar className="w-4 h-4" />
+              Past Entry
+            </Button>
+            <Button
               onClick={onNavigateToJournal}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
@@ -164,6 +174,49 @@ const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, keycloak }) => {
             </Button>
           </div>
         </div>
+
+        {/* Date Picker Modal */}
+        {showDatePicker && (
+          <Card className="mb-8 bg-white/80 backdrop-blur border-2 border-indigo-300">
+            <CardHeader>
+              <CardTitle>Create Entry for a Specific Date</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                    Select Date
+                  </label>
+                  <input
+                    type="date"
+                    value={pickedDate}
+                    onChange={(e) => setPickedDate(e.target.value)}
+                    max={new Date().toISOString().split("T")[0]}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      onNavigateToJournalForDate(pickedDate);
+                      setShowDatePicker(false);
+                    }}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Start Entry
+                  </Button>
+                  <Button
+                    onClick={() => setShowDatePicker(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Card */}
         <Card className="mb-8 bg-white/80 backdrop-blur">
@@ -224,7 +277,8 @@ const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, keycloak }) => {
                         </span>
                       </div>
                       <p className="text-gray-700 leading-relaxed mb-3">
-                        No entry yet for today. Take a moment to reflect on your day!
+                        No entry yet for today. Take a moment to reflect on your
+                        day!
                       </p>
                       <div className="flex items-center gap-4 text-sm">
                         <div>
@@ -293,7 +347,9 @@ const Dashboard = ({ onNavigateToJournal, onNavigateToRoutine, keycloak }) => {
                         </p>
                         <div className="text-sm text-gray-600">
                           <CheckSquare className="inline w-4 h-4 mr-1" />
-                          Tasks completed that day: {entry.tasksCompleted ?? 0} / {completions.total ?? 0}
+                          Tasks completed that day: {entry.tasksCompleted ??
+                            0}{" "}
+                          / {completions.total ?? 0}
                         </div>
                       </div>
                     </div>
