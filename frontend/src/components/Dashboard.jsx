@@ -145,14 +145,14 @@ const Dashboard = ({
       : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900 p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-50 mb-2">
               Your Journal Dashboard
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Track your contentment journey over time
             </p>
           </div>
@@ -184,14 +184,14 @@ const Dashboard = ({
 
         {/* Date Picker Modal */}
         {showDatePicker && (
-          <Card className="mb-8 bg-white/80 backdrop-blur border-2 border-indigo-300">
+          <Card className="mb-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur border-2 border-indigo-300 dark:border-indigo-600">
             <CardHeader>
               <CardTitle>Create Entry for a Specific Date</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
                     Select Date
                   </label>
                   <input
@@ -199,7 +199,7 @@ const Dashboard = ({
                     value={pickedDate}
                     onChange={(e) => setPickedDate(e.target.value)}
                     max={new Date().toISOString().split("T")[0]}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:focus:ring-indigo-600"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -208,7 +208,7 @@ const Dashboard = ({
                       onNavigateToJournalForDate(pickedDate);
                       setShowDatePicker(false);
                     }}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600"
                   >
                     Start Entry
                   </Button>
@@ -233,18 +233,18 @@ const Dashboard = ({
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-600">Total Entries</p>
-                <p className="text-3xl font-bold text-indigo-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Entries</p>
+                <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
                   {entries.length}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Average Contentment</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Average Contentment</p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-bold text-indigo-600">
+                  <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
                     {averageContentment}
                   </p>
-                  <p className="text-sm text-gray-500">/ 10</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500">/ 10</p>
                 </div>
               </div>
             </div>
@@ -252,25 +252,25 @@ const Dashboard = ({
         </Card>
 
         {/* Entries List */}
-        <Card className="bg-white/80 backdrop-blur">
+        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur">
           <CardHeader>
             <CardTitle>Recent Entries</CardTitle>
             <CardDescription>Your last 10 journal entries</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8 text-gray-600">
+              <div className="text-center py-8 text-gray-600 dark:text-gray-400">
                 Loading your entries...
               </div>
             ) : error ? (
-              <div className="text-center py-8 text-red-600">
+              <div className="text-center py-8 text-red-600 dark:text-red-400">
                 Error: {error}
               </div>
             ) : (
               <div className="space-y-4">
                 {/* Journal Pending Tile - show if no entry for today */}
                 {!hasTodayEntry() && (
-                  <div className="flex items-start gap-4 p-4 rounded-lg border border-amber-200 bg-amber-50 hover:border-amber-300 transition-all">
+                  <div className="flex items-start gap-4 p-4 rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 hover:border-amber-300 dark:hover:border-amber-600 transition-all">
                     <div className="flex-shrink-0">
                       <div className="w-16 h-16 rounded-lg bg-amber-400 flex flex-col items-center justify-center text-white shadow-lg">
                         <AlertCircle className="w-8 h-8" />
@@ -278,25 +278,25 @@ const Dashboard = ({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="font-semibold text-gray-900">Today</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-50">Today</p>
                         <span className="px-2 py-1 rounded-full text-xs font-medium text-white bg-amber-500">
                           Journal Pending
                         </span>
                       </div>
-                      <p className="text-gray-700 leading-relaxed mb-3">
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
                         No entry yet for today. Take a moment to reflect on your
                         day!
                       </p>
                       <div className="flex items-center gap-4 text-sm">
                         <div>
-                          <p className="text-gray-600">Tasks Completed</p>
-                          <p className="text-lg font-bold text-amber-600">
+                          <p className="text-gray-600 dark:text-gray-400">Tasks Completed</p>
+                          <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
                             {completions.today ?? 0} / {completions.total ?? 0}
                           </p>
                         </div>
                         <Button
                           onClick={onNavigateToJournal}
-                          className="bg-amber-500 hover:bg-amber-600 ml-auto"
+                          className="bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-500 ml-auto"
                         >
                           Add Entry
                         </Button>
@@ -307,13 +307,13 @@ const Dashboard = ({
 
                 {/* Past Entries */}
                 {entries.length === 0 && hasTodayEntry() ? (
-                  <div className="text-center py-8 text-gray-600">
+                  <div className="text-center py-8 text-gray-600 dark:text-gray-400">
                     <p className="mb-4">
                       No entries yet. Start your journaling journey!
                     </p>
                     <Button
                       onClick={onNavigateToJournal}
-                      className="bg-indigo-600 hover:bg-indigo-700"
+                      className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600"
                     >
                       Create First Entry
                     </Button>
@@ -322,7 +322,7 @@ const Dashboard = ({
                   entries.map((entry) => (
                     <div
                       key={entry.id}
-                      className="flex items-start gap-4 p-4 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all"
+                      className="flex items-start gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-all"
                     >
                       <div className="flex-shrink-0">
                         <div
@@ -338,7 +338,7 @@ const Dashboard = ({
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-semibold text-gray-900 dark:text-gray-50">
                             {formatDate(entry.date)}
                           </p>
                           <span
@@ -349,10 +349,10 @@ const Dashboard = ({
                             {getContentmentLabel(entry.contentmentScore)}
                           </span>
                         </div>
-                        <p className="text-gray-700 leading-relaxed mb-2">
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-2">
                           {entry.oneLineSummary}
                         </p>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
                           <CheckSquare className="inline w-4 h-4 mr-1" />
                           Tasks completed that day: {entry.tasksCompleted ??
                             0}{" "}

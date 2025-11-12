@@ -18,14 +18,18 @@ import {
   LayoutDashboard,
   CheckSquare,
   Calendar,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { useAuth, ensureTokenValid } from "../AuthContext";
+import { useTheme } from "../ThemeContext";
 import Dashboard from "./Dashboard";
 import RoutineTracker from "./RoutineTracker";
 import RoutineManager from "./RoutineManager";
 
 const JournalApp = () => {
   const { user, logout, keycloak, loading: authLoading } = useAuth();
+  const { isDark, toggleDarkMode } = useTheme();
   const [showDashboard, setShowDashboard] = useState(true);
   const [showRoutine, setShowRoutine] = useState(false);
   const [showRoutineManager, setShowRoutineManager] = useState(false);
@@ -202,6 +206,18 @@ const JournalApp = () => {
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
           </>
+        )}
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={toggleDarkMode}
+        className="flex items-center gap-2"
+      >
+        {isDark ? (
+          <Sun className="w-4 h-4" />
+        ) : (
+          <Moon className="w-4 h-4" />
         )}
       </Button>
       <Button

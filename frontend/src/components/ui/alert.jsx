@@ -2,8 +2,8 @@ import React from 'react'
 
 const Alert = React.forwardRef(({ className = '', variant = 'default', ...props }, ref) => {
   const variants = {
-    default: 'bg-white text-gray-900 border-gray-200',
-    destructive: 'bg-red-50 text-red-900 border-red-200'
+    default: 'bg-white text-gray-900 border-gray-200 dark:bg-gray-900 dark:text-gray-50 dark:border-gray-700',
+    destructive: 'bg-red-50 text-red-900 border-red-200 dark:bg-red-900/30 dark:text-red-200 dark:border-red-800'
   }
   
   return (
