@@ -214,11 +214,7 @@ const JournalApp = () => {
         onClick={toggleDarkMode}
         className="flex items-center gap-2"
       >
-        {isDark ? (
-          <Sun className="w-4 h-4" />
-        ) : (
-          <Moon className="w-4 h-4" />
-        )}
+        {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
       </Button>
       <Button
         variant="outline"

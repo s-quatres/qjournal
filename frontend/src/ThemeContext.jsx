@@ -12,6 +12,7 @@ export const ThemeProvider = ({ children }) => {
     return true; // Default to dark mode
   });
 
+  // Apply theme on mount and when isDark changes
   useEffect(() => {
     // Update localStorage when theme changes
     localStorage.setItem("theme", isDark ? "dark" : "light");

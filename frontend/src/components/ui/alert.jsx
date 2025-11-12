@@ -1,25 +1,31 @@
-import React from 'react'
+import React from "react";
 
-const Alert = React.forwardRef(({ className = '', variant = 'default', ...props }, ref) => {
-  const variants = {
-    default: 'bg-white text-gray-900 border-gray-200 dark:bg-gray-900 dark:text-gray-50 dark:border-gray-700',
-    destructive: 'bg-red-50 text-red-900 border-red-200 dark:bg-red-900/30 dark:text-red-200 dark:border-red-800'
+const Alert = React.forwardRef(
+  ({ className = "", variant = "default", ...props }, ref) => {
+    const variants = {
+      default:
+        "bg-white text-gray-900 border-gray-200 dark:bg-gray-900 dark:text-gray-50 dark:border-gray-700",
+      destructive:
+        "bg-red-50 text-red-900 border-red-200 dark:bg-red-900/30 dark:text-red-200 dark:border-red-800",
+    };
+
+    return (
+      <div
+        ref={ref}
+        role="alert"
+        className={`relative w-full rounded-lg border p-4 ${variants[variant]} ${className}`}
+        {...props}
+      />
+    );
   }
-  
-  return (
-    <div
-      ref={ref}
-      role="alert"
-      className={`relative w-full rounded-lg border p-4 ${variants[variant]} ${className}`}
-      {...props}
-    />
+);
+Alert.displayName = "Alert";
+
+const AlertDescription = React.forwardRef(
+  ({ className = "", ...props }, ref) => (
+    <div ref={ref} className={`text-sm ${className}`} {...props} />
   )
-})
-Alert.displayName = 'Alert'
+);
+AlertDescription.displayName = "AlertDescription";
 
-const AlertDescription = React.forwardRef(({ className = '', ...props }, ref) => (
-  <div ref={ref} className={`text-sm ${className}`} {...props} />
-))
-AlertDescription.displayName = 'AlertDescription'
-
-export { Alert, AlertDescription }
+export { Alert, AlertDescription };
