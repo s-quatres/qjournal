@@ -10,14 +10,21 @@ import { Button } from "./ui/button";
 import { CheckSquare, AlertCircle, Calendar } from "lucide-react";
 import { ensureTokenValid } from "../AuthContext";
 
-const Dashboard = ({ onNavigateToJournal, onNavigateToJournalForDate, onNavigateToRoutine, keycloak }) => {
+const Dashboard = ({
+  onNavigateToJournal,
+  onNavigateToJournalForDate,
+  onNavigateToRoutine,
+  keycloak,
+}) => {
   const [entries, setEntries] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [completions, setCompletions] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [pickedDate, setPickedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [pickedDate, setPickedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
 
   useEffect(() => {
     fetchData();

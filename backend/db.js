@@ -130,12 +130,12 @@ async function saveJournalEntry(
   try {
     // Use provided date or default to today
     const dateToUse = entryDate || new Date().toISOString().split("T")[0];
-    
+
     console.log("[DB] Saving journal entry for user ID:", userId);
     console.log("[DB] Entry date:", dateToUse);
     console.log("[DB] Answers keys:", Object.keys(answers).join(", "));
     console.log("[DB] Contentment score:", contentmentScore);
-    
+
     const result = await client.query(
       `INSERT INTO journal_entries (user_id, entry_date, answers, one_line_summary, four_sentence_summary, contentment_score)
        VALUES ($1, $2, $3, $4, $5, $6)

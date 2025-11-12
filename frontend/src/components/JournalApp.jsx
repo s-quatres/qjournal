@@ -112,7 +112,7 @@ const JournalApp = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${keycloak.token}`,
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           answers,
           entryDate: selectedDate || new Date().toISOString().split("T")[0],
         }),
